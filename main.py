@@ -6,19 +6,20 @@ from map.spritesheet import Spritesheet
 
 ############################### LOAD UP BASIC WINDOW ##################################
 pygame.init()
-DISPLAY_HEIGHT, DISPLAY_WIDTH = 1000, 1000
-canvas = pygame.Surface((DISPLAY_HEIGHT, DISPLAY_WIDTH))
-window = pygame.display.set_mode(((DISPLAY_HEIGHT, DISPLAY_WIDTH)))
+DISPLAY_HEIGHT, DISPLAY_WIDTH = 300, 300
+canvas = pygame.Surface((DISPLAY_WIDTH, DISPLAY_HEIGHT))
+window = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT), pygame.RESIZABLE)
 running = True
 
 ############################### LOAD PLAYER AND BLOCKS ################################
 spritesheet = Spritesheet('map/images/spritesheet.png')
-player_img = spritesheet.parse_sprite('keeper.png')
-player_rect = player_img.get_rect()
+#player_img = spritesheet.parse_sprite('keeper.png')
+# = player_img.get_rect()
 
 ############################### LOAD LEVEL ############################################
-game_map = TileMap('levels/Level1.csv', spritesheet)
-player_rect.x, player_rect.y = game_map.start_x, game_map.start_y
+game_map = TileMap('levels/Level60.csv', spritesheet)
+
+#player_rect.x, player_rect.y = game_map.start_x, game_map.start_y
 
 ############################### GAME LOOP #############################################
 while running:
@@ -28,11 +29,10 @@ while running:
         if event.type == pygame.KEYDOWN:
             pass
 
-
     ########################### UPDAE SPRITE #########################################
 
     ########################### UPDATE WINDOW AND DISPLAY ############################
-    canvas.fill((0, 180, 240))
+    canvas.fill((0, 0, 0))
     game_map.draw_map(canvas)
     #canvas.blit(player_img, player_rect)
     window.blit(canvas, (0, 0))

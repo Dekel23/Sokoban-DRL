@@ -17,7 +17,6 @@ class Tile(pygame.sprite.Sprite):
 class TileMap():
     def __init__(self, filename, spritesheet):
         self.tile_size = 32
-        self.start_x, self.start_y = 0, 0
         self.spritesheet = spritesheet
         self.tiles = self.load_tiles(filename)
         self.map_surface = pygame.Surface((self.map_width, self.map_height))
@@ -49,30 +48,23 @@ class TileMap():
             for x, tile in enumerate(row):
                 match tile:
                     case '0':
-                        tiles.append(Tile('empty.png', x * self.start_x, y * self.start_y, self.spritesheet))
+                        tiles.append(Tile('empty.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
                     case '1':
-                        tiles.append(Tile('wall.png', x * self.start_x, y * self.start_y, self.spritesheet))
+                        tiles.append(Tile('wall.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
                     case '2':
-                        tiles.append(Tile('floor.png', x * self.start_x, y * self.start_y, self.spritesheet))
+                        tiles.append(Tile('floor.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
                     case '3':
-                        tiles.append(Tile('target.png', x * self.start_x, y * self.start_y, self.spritesheet))
+                        tiles.append(Tile('target.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
                     case '4':
-                        tiles.append(Tile('cargo.png', x * self.start_x, y * self.start_y, self.spritesheet))
+                        tiles.append(Tile('cargo.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
                     case '5':
-                        tiles.append(Tile('cargo_on_target.png', x * self.start_x, y * self.start_y, self.spritesheet))
+                        tiles.append(Tile('cargo_on_target.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
                     case '6':
-                        tiles.append(Tile('keeper.png', x * self.start_x, y * self.start_y, self.spritesheet))
+                        tiles.append(Tile('keeper.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
                     case '7':
-                        tiles.append(Tile('keeper_on_target.png', x * self.start_x, y * self.start_y, self.spritesheet))
+                        tiles.append(Tile('keeper_on_target.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
                     case _:
                         raise Exception('Invalid tile value (invalid map)')
-                
-                self.start_x += self.tile_size
-            
-            self.start_y += self.tile_size
-            self.start_x = 0
         
-        self.start_y = 0
-
         self.map_width, self.map_height = x * self.tile_size, y * self.tile_size
         return tiles
