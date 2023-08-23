@@ -66,5 +66,5 @@ class TileMap():
                     case _:
                         raise Exception('Invalid tile value (invalid map)')
         
-        self.map_width, self.map_height = x * self.tile_size, y * self.tile_size
+        self.map_width, self.map_height = (x + 1) * self.tile_size, (y + 1) * self.tile_size
         return tiles
