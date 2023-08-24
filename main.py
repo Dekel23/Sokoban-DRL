@@ -44,7 +44,7 @@ def load_level(level_index):
 map_info, game_map, player = load_level(level_index)
 
 ############################### GAME LOOP #############################################
-pygame.key.set_repeat(200)
+pygame.key.set_repeat(150)
 while running:
     info_to_change = []
     for event in pygame.event.get():
