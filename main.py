@@ -26,6 +26,8 @@ spritesheet = Spritesheet('map/images/spritesheet.png')
 level_index = 1
 
 def load_level(level_index):
+    if level_index < 1 or level_index > 60:
+        raise Exception ('Invalid Level')
     level = 'levels/Level' + str(level_index) + '.csv'
     # Load the map info from file
     map_info = []
@@ -62,6 +64,16 @@ while running:
                     info_to_change = player.Move((1,0))
                 case 'q':
                     running = False
+                case 'r':
+                    map_info, game_map, player = load_level(level_index)
+                case 'n':
+                    level_index += 1
+                    map_info, game_map, player = load_level(level_index)
+                case 'p':
+                    level_index -= 1
+                    map_info, game_map, player = load_level(level_index)
+
+
 
     ########################### UPDAE SPRITE #########################################
     if info_to_change:
