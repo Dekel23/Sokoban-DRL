@@ -3,10 +3,12 @@
 import pygame
 from map.tiles import TileMap
 from map.spritesheet import Spritesheet
+from tkinter import *
 
 ############################### LOAD UP BASIC WINDOW ##################################
 pygame.init()
-DISPLAY_HEIGHT, DISPLAY_WIDTH = 2000, 2000
+win = Tk()
+DISPLAY_HEIGHT, DISPLAY_WIDTH = win.winfo_screenheight() - 64 , win.winfo_screenwidth()
 canvas = pygame.Surface((DISPLAY_WIDTH, DISPLAY_HEIGHT))
 window = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT), pygame.RESIZABLE)
 
@@ -14,16 +16,13 @@ pygame.display.set_caption("Sokoban")
 
 running = True
 
-############################### LOAD PLAYER AND BLOCKS ################################
+############################### LOAD TILES INFO ################################
 spritesheet = Spritesheet('map/images/spritesheet.png')
-#player_img = spritesheet.parse_sprite('keeper.png')
-# = player_img.get_rect()
 
-############################### LOAD LEVEL ############################################
-game_map = TileMap('levels/Level1.csv', spritesheet)
+############################### LOAD LEVEL SET SIZE OF SCREEN ############################################
+game_map = TileMap('levels/Level20.csv', spritesheet)
+game_map.load_map()
 window = pygame.display.set_mode((game_map.map_width, game_map.map_height), pygame.RESIZABLE)
-
-#player_rect.x, player_rect.y = game_map.start_x, game_map.start_y
 
 ############################### GAME LOOP #############################################
 while running:
@@ -38,6 +37,5 @@ while running:
     ########################### UPDATE WINDOW AND DISPLAY ############################
     canvas.fill((0, 0, 0))
     game_map.draw_map(canvas)
-    #canvas.blit(player_img, player_rect)
     window.blit(canvas, (0, 0))
     pygame.display.update()
