@@ -1,7 +1,7 @@
 #!/home/env/sokoban/bin/python3
 # Control the flow of the game
 import pygame
-from sokoban import Kepper
+from keeper import Keeper
 import csv
 import os
 from map.tiles import TileMap, Tile
@@ -38,13 +38,13 @@ def load_level(level_index):
     game_map = TileMap(map_info, spritesheet)
     pygame.display.set_mode((game_map.map_width, game_map.map_height), pygame.RESIZABLE)
 
-    player = Kepper(map_info)
+    player = Keeper(map_info)
     return map_info, game_map, player
 
 map_info, game_map, player = load_level(level_index)
 
 ############################### GAME LOOP #############################################
-pygame.key.set_repeat(100)
+pygame.key.set_repeat(200)
 while running:
     info_to_change = []
     for event in pygame.event.get():

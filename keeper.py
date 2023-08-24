@@ -1,5 +1,5 @@
 
-class Kepper:
+class Keeper:
     def __init__(self,map_info):
         self.searchKeeperPos(map_info)
         self.map = map_info
@@ -70,6 +70,4 @@ class Kepper:
                 raise Exception('Invalid map')
             
         return info_to_change
-
-
-               
+    
