@@ -66,7 +66,7 @@ class Kepper:
                     if self.map[self.y + dist[0]][self.x + dist[1]] == '3': #If after cargo target
                         info_to_change.append((self.y + dist[0],self.x + dist[1],'5')) # Set new pos cargo & target
 
-            case _: # otherwise something went wrong
+            case _: # Otherwise something went wrong
                 raise Exception('Invalid map')
             
         return info_to_change

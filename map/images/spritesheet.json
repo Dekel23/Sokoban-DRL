@@ -32,7 +32,7 @@
         "spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
         "sourceSize": {"w":32,"h":32}
     },
-    "keeper_on_target.png":
+    "keeper.png":
     {
         "frame": {"x":128,"y":0,"w":32,"h":32},
         "rotated": false,
@@ -40,7 +40,7 @@
         "spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
         "sourceSize": {"w":32,"h":32}
     },
-    "keeper.png":
+    "keeper_on_target.png":
     {
         "frame": {"x":160,"y":0,"w":32,"h":32},
         "rotated": false,

@@ -15,8 +15,6 @@ DISPLAY_WIDTH, DISPLAY_HEIGHT = win.winfo_screenwidth() , win.winfo_screenheight
 canvas = pygame.Surface((DISPLAY_WIDTH, DISPLAY_HEIGHT))
 window = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT), pygame.RESIZABLE)
 
-pygame.display.set_caption("Sokoban")
-
 running = True
 
 ############################### LOAD TILES INFO ################################
@@ -26,9 +24,10 @@ spritesheet = Spritesheet('map/images/spritesheet.png')
 level_index = 1
 
 def load_level(level_index):
+    pygame.display.set_caption(f'Sokoban Level {level_index}')
     if level_index < 1 or level_index > 60:
         raise Exception ('Invalid Level')
-    level = 'levels/Level' + str(level_index) + '.csv'
+    level = f'levels/Level{level_index}.csv'
     # Load the map info from file
     map_info = []
     with open(os.path.join(level)) as f:
@@ -43,9 +42,9 @@ def load_level(level_index):
     return map_info, game_map, player
 
 map_info, game_map, player = load_level(level_index)
-#window = pygame.display.set_mode((game_map.map_width, game_map.map_height), pygame.RESIZABLE)
 
 ############################### GAME LOOP #############################################
+pygame.key.set_repeat(100)
 while running:
     info_to_change = []
     for event in pygame.event.get():
@@ -72,8 +71,6 @@ while running:
                 case 'p':
                     level_index -= 1
                     map_info, game_map, player = load_level(level_index)
-
-
 
     ########################### UPDAE SPRITE #########################################
     if info_to_change:
