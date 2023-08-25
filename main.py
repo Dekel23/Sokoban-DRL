@@ -58,13 +58,13 @@ while running:
             key_name = pygame.key.name(event.key)
             match key_name:
                 case 'd':
-                    info_to_change = player.Move((0, 1))
+                    info_to_change = player.move((0, 1))
                 case 'a':
-                    info_to_change = player.Move((0, -1))
+                    info_to_change = player.move((0, -1))
                 case 'w':
-                    info_to_change = player.Move((-1, 0))
+                    info_to_change = player.move((-1, 0))
                 case 's':
-                    info_to_change = player.Move((1, 0))
+                    info_to_change = player.move((1, 0))
                 case 'q':
                     running = False
                 case 'r':

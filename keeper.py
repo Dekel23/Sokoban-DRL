@@ -1,7 +1,7 @@
 
 class Keeper:
     def __init__(self, map_info):
-        self.searchKeeperPos(map_info)
+        self.search_keeper_pos(map_info)
         self.map = map_info
 
     def search_keeper_pos(self, map_info):
