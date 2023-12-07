@@ -2,11 +2,14 @@ import pygame
 from map.spritesheet import Spritesheet
 from tkinter import *
 
+# Initializes the game window
 pygame.init()
 win = Tk()
 MAX_WIDTH, MAX_HEIGHT = win.winfo_screenwidth() , win.winfo_screenheight() - 64
 SURFACE = pygame.Surface((MAX_WIDTH, MAX_HEIGHT))
 DISPLAY = pygame.display.set_mode((MAX_WIDTH, MAX_HEIGHT), pygame.RESIZABLE)
+
+# Difine the Tiles graphics
 TILE_SIZE = 32
 SPRITESHEET = Spritesheet('map/images/spritesheet.png')
 TILE_TYPES = ['empty.png', 'wall.png', 'floor.png', 'target.png', 'cargo.png', 'cargo_on_target.png',
@@ -57,12 +60,14 @@ class TileMap():
         self.map_width, self.map_height = (x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE
         self.tiles = tiles
     
+    # Change the graphics of a tile
     def change_tile(self, tile_info):
         (y, x, type) = tile_info
         tile_index = int(y * self.map_width/TILE_SIZE + x)
         new_tile = Tile(TILE_TYPES[int(type)], x * TILE_SIZE, y * TILE_SIZE)
         self.tiles[tile_index] = new_tile
     
+    # Update the game window
     def update_ui(self):
         self.load_map()
         SURFACE.fill((0, 0, 0))

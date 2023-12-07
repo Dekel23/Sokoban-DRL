@@ -4,18 +4,25 @@ import pygame
 import csv
 import os
 from map.graphics import TileMap
+from enum import Enum
 
 pygame.init()
-pygame.key.set_repeat(150)
+
+class Action(Enum):
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
 
 class SokobanGame:
     def __init__(self):
-        self.level = 1
+        self.level = 62
         self.reset_level()
 
+    # Reset the game to the current level
     def reset_level(self):
         pygame.display.set_caption(f'Sokoban Level {self.level}')
-        if self.level < 1 or self.level > 60:
+        if self.level < 1 or self.level > 62:
             raise Exception ('Invalid Level')
         level = f'levels/Level{self.level}.csv'
         # Load the map info from file
@@ -28,22 +35,41 @@ class SokobanGame:
         self.game_map = TileMap(self.map_info)
         self.search_kepper_pos()
     
+    # Find the position of the kepper
     def search_kepper_pos(self):
         x, y = 0, 0
         for y, row in enumerate(self.map_info):
             for x, tile in enumerate(row):
-                if tile == ('6' or '7'):
+                if tile in ('6','7'):
                     self.x = x
                     self.y = y
     
+    # Reset the game to the next level
     def next_level(self):
         self.level += 1
         self.reset_level()
     
+    # Reset the game to the previos level
     def prev_level(self):
         self.level -= 1
         self.reset_level()
 
+    # Step to do difined by action
+    def step_action(self, action):
+        if action == Action.UP:
+            self.move((-1,0))
+        if action == Action.RIGHT:
+            self.move((0,1))
+        if action == Action.DOWN:
+            self.move((1,0))
+        if action == Action.LEFT:
+            self.move((0,-1))
+        
+        if self.check_end():
+            self.reset_level()
+        self.game_map.update_ui()
+
+    # Step to do difined by the keyboard
     def play_step(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -71,9 +97,10 @@ class SokobanGame:
                         self.prev_level()
     
         if self.check_end():
-            self.next_level()
+            self.reset_level()
         self.game_map.update_ui()
 
+    # Difine what changes need to be done by the step
     def move(self, dist):
         info_to_change = []
         match self.map_info[self.y + dist[0]][self.x + dist[1]]:
@@ -132,6 +159,7 @@ class SokobanGame:
                 raise Exception('Invalid map')
         self.change_map(info_to_change)
     
+    # Change the game map info by the move (and graphics)
     def change_map(self, info_to_change):
         if info_to_change:
             for tile_info in info_to_change:
@@ -139,6 +167,7 @@ class SokobanGame:
                 self.map_info[y][x] = type
                 self.game_map.change_tile(tile_info)
 
+    # Check if the level ended
     def check_end(self):
         end_level = True
         for y, row in enumerate(self.map_info):
