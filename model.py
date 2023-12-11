@@ -1,16 +1,9 @@
-import matplotlib.pyplot as plt
-from collections import deque
 import numpy as np
-import random
-import time
-import os
 
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.nn as nn
 import torch as T
-
-import game
 
 class DQNetWork(nn.Module):
     def init(self,input_size, fc1_size, fc2_size, action_size,lr):
@@ -52,6 +45,7 @@ class Agent:
         self.batch_size = batch_size
         self.mem_counter = 0
         self.iter_counter = 0
+        self.replay_rate = 10
 
         self.replace_target = 100
 
@@ -61,16 +55,16 @@ class Agent:
         self.new_state_memory = np.zeros((self.mem_size, *input_size), dtype=np.float32) # Next state memory
         self.action_memory = np.zeros(self.mem_size, dtype=np.int32) # Action memory
         self.reward_memory = np.zeros(self.mem_size, dtype=np.float32) # Reward memory
-        self.terminal_memory = np.zeros(self.mem_size, dtype=np.bool) # ???
+        self.done_memory = np.zeros(self.mem_size, dtype=np.bool) # Done memory
 
     # Store move in the game in the memory
-    def store_transition(self, state, action, reward, next_state, terminal):
+    def store_transition(self, state, action, reward, next_state, done):
         index = self.mem_counter % self.mem_size
         self.state_memory[index] = state
         self.new_state_memory[index] = next_state
         self.reward_memory[index] = reward
         self.action_memory[index] = action
-        self.terminal_memory[index] = terminal
+        self.done_memory[index] = done
 
         self.mem_counter += 1
 
@@ -87,13 +81,12 @@ class Agent:
 
     # 
     def learn(self):
-        if self.mem_counter < self.batch_size:
+        if self.mem_counter < self.batch_size: # if the memory is less than batch size
             return
 
         self.Q_eval.optimizer.zero_grad()
 
-        max_mem = min(self.mem_counter, self.mem_size)
-
+        max_mem = min(self.mem_counter, self.mem_size) # choose batch size of random memories 
         batch = np.random.choice(max_mem, self.batch_size, replace=False)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
 

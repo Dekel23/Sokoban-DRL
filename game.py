@@ -16,7 +16,7 @@ class Action(Enum):
 
 class SokobanGame:
     def __init__(self):
-        self.level = 62
+        self.level = 61
         self.reset_level()
 
     # Reset the game to the current level
@@ -65,40 +65,40 @@ class SokobanGame:
         if action == Action.LEFT:
             self.move((0,-1))
         
-        if self.check_end():
-            self.reset_level()
         self.game_map.update_ui()
 
+        return self.map_info, self.check_end(), self.check_end() # next_state, reward, done 
+
     # Step to do difined by the keyboard
-    def play_step(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            if event.type == pygame.KEYDOWN:
-                key_name = pygame.key.name(event.key)
-                match key_name:
-                    case 'd':
-                        self.move((0,1))
-                    case 'a':
-                        self.move((0,-1))
-                    case 'w':
-                        self.move((-1,0))
-                    case 's':
-                        self.move((1,0))
-                    case 'q':
-                        pygame.quit()
-                        quit()
-                    case 'r':
-                        self.reset_level()
-                    case 'n':
-                        self.next_level()
-                    case 'p':
-                        self.prev_level()
+    # def play_step(self):
+    #     for event in pygame.event.get():
+    #         if event.type == pygame.QUIT:
+    #             pygame.quit()
+    #             quit()
+    #         if event.type == pygame.KEYDOWN:
+    #             key_name = pygame.key.name(event.key)
+    #             match key_name:
+    #                 case 'd':
+    #                     self.move((0,1))
+    #                 case 'a':
+    #                     self.move((0,-1))
+    #                 case 'w':
+    #                     self.move((-1,0))
+    #                 case 's':
+    #                     self.move((1,0))
+    #                 case 'q':
+    #                     pygame.quit()
+    #                     quit()
+    #                 case 'r':
+    #                     self.reset_level()
+    #                 case 'n':
+    #                     self.next_level()
+    #                 case 'p':
+    #                     self.prev_level()
     
-        if self.check_end():
-            self.reset_level()
-        self.game_map.update_ui()
+    #     if self.check_end():
+    #         self.reset_level()
+    #     self.game_map.update_ui()
 
     # Difine what changes need to be done by the step
     def move(self, dist):
@@ -176,7 +176,7 @@ class SokobanGame:
                     end_level = False
         return end_level
 
-if __name__ == '__main__':
-    game = SokobanGame()
-    while True:
-        game.play_step()
+# if __name__ == '__main__':
+#     game = SokobanGame()
+#     while True:
+#         game.play_step()
