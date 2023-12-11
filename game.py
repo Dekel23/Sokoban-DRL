@@ -6,8 +6,6 @@ import os
 from map.graphics import TileMap
 from enum import Enum
 
-pygame.init()
-
 class Action(Enum):
     UP = 0
     RIGHT = 1
@@ -56,13 +54,13 @@ class SokobanGame:
 
     # Step to do difined by action
     def step_action(self, action):
-        if action == Action.UP:
+        if action == 0:
             self.move((-1,0))
-        if action == Action.RIGHT:
+        if action == 1:
             self.move((0,1))
-        if action == Action.DOWN:
+        if action == 2:
             self.move((1,0))
-        if action == Action.LEFT:
+        if action == 3:
             self.move((0,-1))
         
         self.game_map.update_ui()

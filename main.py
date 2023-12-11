@@ -1,9 +1,12 @@
 from game import SokobanGame
 from model import Agent
+import pygame
+
+pygame.init()
 
 max_episods = 10000
 max_steps = 500
-agent = Agent(gamma=0.99, epsilon=1.0, batch_size= 10, action_size= 4, epsilon_min= 0.1, epsilon_dec= 0.99, input_size=[25], lr=0.01)
+agent = Agent(gamma=0.99, epsilon=1.0, batch_size= 10, action_size= 4, epsilon_min= 0.1, epsilon_dec= 0.99, input_size=[5,5], lr=0.01)
 env = SokobanGame()
 successes_before_train = 5
 successful_episodes = 0
@@ -21,8 +24,8 @@ for e in range(max_episods):
 
     for step in range(max_steps):
         state = env.map_info
-        action=Agent.choose_action(state)
-        next_state, reward, done = env.step_action()
+        action=agent.choose_action(observation=state)
+        next_state, reward, done = env.step_action(action=action)
         agent.store_transition(state, action, reward, next_state, done)
 
         if successful_episodes >= successes_before_train:
@@ -36,5 +39,3 @@ for e in range(max_episods):
             steps_per_episode.append(step+1)
         else:
             continuous_successes = 0
-
-

@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch as T
 
 class DQNetWork(nn.Module):
-    def init(self,input_size, fc1_size, fc2_size, action_size,lr):
+    def __init__(self,input_size, fc1_size, fc2_size, action_size,lr):
         super(DQNetWork, self).__init__()
         self.input_size = input_size
         self.fc1_size = fc1_size
@@ -32,7 +32,7 @@ class DQNetWork(nn.Module):
     
 class Agent:
     def __init__(self, gamma, epsilon, lr, input_size, batch_size, action_size,
-                 max_mem_size=100000, epsilon_min=0.05, epsilon_dec=5e-4):
+                 epsilon_min, epsilon_dec, max_mem_size=100000):
         self.gamma = gamma
         self.lr = lr
 
@@ -49,13 +49,12 @@ class Agent:
 
         self.replace_target = 100
 
-        self.Q_eval = DQNetWork(lr, action_size=action_size, input_size=input_size, 
-                                fc1_size=256, fc2_size=256) # The model the agent use
+        self.Q_eval = DQNetWork(input_size=input_size, fc1_size=256, fc2_size=256, action_size=action_size, lr=lr) # The model the agent use
         self.state_memory = np.zeros((self.mem_size, *input_size), dtype=np.float32) # State memory
         self.new_state_memory = np.zeros((self.mem_size, *input_size), dtype=np.float32) # Next state memory
         self.action_memory = np.zeros(self.mem_size, dtype=np.int32) # Action memory
         self.reward_memory = np.zeros(self.mem_size, dtype=np.float32) # Reward memory
-        self.done_memory = np.zeros(self.mem_size, dtype=np.bool) # Done memory
+        self.done_memory = np.zeros(self.mem_size, dtype=np.bool_) # Done memory
 
     # Store move in the game in the memory
     def store_transition(self, state, action, reward, next_state, done):
