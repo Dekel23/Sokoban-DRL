@@ -5,42 +5,50 @@ import torch.optim as optim
 import torch.nn as nn
 import torch as T
 
+
 class DQNetWork(nn.Module):
-    def __init__(self,input_size, fc1_size, fc2_size, action_size,lr):
+    def __init__(self, input_size, fc1_size, fc2_size, action_size, lr):
         super(DQNetWork, self).__init__()
         self.input_size = input_size
         self.fc1_size = fc1_size
         self.fc2_size = fc2_size
         self.action_size = action_size
-        self.fc1 = nn.Linear(*self.input_size, self.fc1_size) # 3 levels Neural Network
+
+        # 3 levels Neural Network
+        self.fc1 = nn.Linear(*self.input_size, self.fc1_size)
         self.fc2 = nn.Linear(self.fc1_size, self.fc2_size)
         self.fc3 = nn.Linear(self.fc2_size, self.action_size)
 
-        self.optimizer = optim.Adam(self.parameters(), lr=lr) # Adam optimizer fot the nn parameters
-        self.loss = nn.MSELoss() # Loss function is Mean Squared Error
+        # Adam optimizer fot the nn parameters
+        self.optimizer = optim.Adam(self.parameters(), lr=lr)
+        self.loss = nn.MSELoss()  # Loss function is Mean Squared Error
 
-        self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu') # Divice to run the program
+        # Device to run the program
+        self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
         self.to(self.device)
 
-    # Push the info threw the nn and optimize it
+    # Push all the data through the neural network
     def forward(self, state):
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         actions = self.fc3(x)
 
         return actions
-    
+
+
 class Agent:
     def __init__(self, gamma, epsilon, lr, input_size, batch_size, action_size,
                  epsilon_min, epsilon_dec, max_mem_size=100000):
         self.gamma = gamma
         self.lr = lr
 
-        self.epsilon = epsilon # Parameters that control the randomness of the agent
+        # Parameters that control the randomness of the agent
+        self.epsilon = epsilon
         self.epsilon_min = epsilon_min
         self.epsilon_dec = epsilon_dec
 
-        self.action_space = [i for i in range(action_size)] # Parameters that control the memory of the agent
+        # Parameters that control the memory of the agent
+        self.action_space = [i for i in range(action_size)]
         self.mem_size = max_mem_size
         self.batch_size = batch_size
         self.mem_counter = 0
@@ -49,12 +57,19 @@ class Agent:
 
         self.replace_target = 100
 
-        self.Q_eval = DQNetWork(input_size=input_size, fc1_size=256, fc2_size=256, action_size=action_size, lr=lr) # The model the agent use
-        self.state_memory = np.zeros((self.mem_size, *input_size), dtype=np.float32) # State memory
-        self.new_state_memory = np.zeros((self.mem_size, *input_size), dtype=np.float32) # Next state memory
-        self.action_memory = np.zeros(self.mem_size, dtype=np.int32) # Action memory
-        self.reward_memory = np.zeros(self.mem_size, dtype=np.float32) # Reward memory
-        self.done_memory = np.zeros(self.mem_size, dtype=np.bool_) # Done memory
+        self.Q_eval = DQNetWork(input_size=input_size, fc1_size=256, fc2_size=256,
+                                action_size=action_size, lr=lr)  # The model the agent uses
+        
+        self.state_memory = np.zeros(
+            (self.mem_size, *input_size), dtype=np.float32)  # State memory
+        self.new_state_memory = np.zeros(
+            (self.mem_size, *input_size), dtype=np.float32)  # Next state memory
+        self.action_memory = np.zeros(
+            self.mem_size, dtype=np.int32)  # Action memory
+        self.reward_memory = np.zeros(
+            self.mem_size, dtype=np.float32)  # Reward memory
+        self.done_memory = np.zeros(
+            self.mem_size, dtype=np.bool_)  # Done memory
 
     # Store move in the game in the memory
     def store_transition(self, state, action, reward, next_state, done):
@@ -78,21 +93,23 @@ class Agent:
 
         return action
 
-    # 
     def learn(self):
-        if self.mem_counter < self.batch_size: # if the memory is less than batch size
+        if self.mem_counter < self.batch_size:  # if the memory is less than batch size
             return
 
         self.Q_eval.optimizer.zero_grad()
 
-        max_mem = min(self.mem_counter, self.mem_size) # choose batch size of random memories 
+        # choose batch size of random memories
+        max_mem = min(self.mem_counter, self.mem_size)
         batch = np.random.choice(max_mem, self.batch_size, replace=False)
         batch_index = np.arange(self.batch_size, dtype=np.int32)
 
         state_batch = T.tensor(self.state_memory[batch]).to(self.Q_eval.device)
-        new_state_batch = T.tensor(self.new_state_memory[batch]).to(self.Q_eval.device)
+        new_state_batch = T.tensor(
+            self.new_state_memory[batch]).to(self.Q_eval.device)
         action_batch = self.action_memory[batch]
-        reward_batch = T.tensor(self.reward_memory[batch]).to(self.Q_eval.device)
+        reward_batch = T.tensor(
+            self.reward_memory[batch]).to(self.Q_eval.device)
         done_batch = T.tensor(self.done_memory[batch]).to(self.Q_eval.device)
 
         q_eval = self.Q_eval.forward(state_batch)[batch_index, action_batch]
