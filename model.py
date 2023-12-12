@@ -15,7 +15,7 @@ class DQNetWork(nn.Module):
         self.action_size = action_size
 
         # 3 levels Neural Network
-        self.fc1 = nn.Linear(*self.input_size, self.fc1_size)
+        self.fc1 = nn.Linear(self.input_size, self.fc1_size)
         self.fc2 = nn.Linear(self.fc1_size, self.fc2_size)
         self.fc3 = nn.Linear(self.fc2_size, self.action_size)
 
@@ -55,15 +55,13 @@ class Agent:
         self.iter_counter = 0
         self.replay_rate = 10
 
-        self.replace_target = 100
-
         self.Q_eval = DQNetWork(input_size=input_size, fc1_size=256, fc2_size=256,
                                 action_size=action_size, lr=lr)  # The model the agent uses
         
         self.state_memory = np.zeros(
-            (self.mem_size, *input_size), dtype=np.float32)  # State memory
+            (self.mem_size, input_size), dtype=np.float32)  # State memory
         self.new_state_memory = np.zeros(
-            (self.mem_size, *input_size), dtype=np.float32)  # Next state memory
+            (self.mem_size, input_size), dtype=np.float32)  # Next state memory
         self.action_memory = np.zeros(
             self.mem_size, dtype=np.int32)  # Action memory
         self.reward_memory = np.zeros(
@@ -85,7 +83,7 @@ class Agent:
     # Choose what action to take using the model
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
-            state = T.tensor([observation]).to(self.Q_eval.device)
+            state = T.tensor(np.array(observation)).to(self.Q_eval.device)
             actions = self.Q_eval.forward(state)
             action = T.argmax(actions).item()
         else:
