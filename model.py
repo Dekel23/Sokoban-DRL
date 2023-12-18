@@ -64,6 +64,7 @@ class Agent:
 
         self.Q_eval = DQNetWork(input_size=input_size, fc1_size=50, fc2_size=50,
                                 action_size=action_size, lr=lr, lr_dec=lr_dec)  # The model the agent uses
+        self.Q_target = None
         
         self.state_memory = np.zeros(
             (self.mem_size, input_size), dtype=np.float32)  # State memory
@@ -77,7 +78,7 @@ class Agent:
             self.mem_size, dtype=np.bool_)  # Done memory
 
     # Store move in the game in the memory
-    def store_transition(self, state, action, reward, next_state, done): 
+    def store_transition(self, reward, state, action, next_state, done, stuck): 
         index = self.mem_counter % self.mem_size
         self.state_memory[index] = state
         self.new_state_memory[index] = next_state
@@ -118,14 +119,16 @@ class Agent:
         done_batch = T.tensor(self.done_memory[batch]).to(self.Q_eval.device)
 
         q_eval = self.Q_eval.forward(state_batch)[batch_index, action_batch] # Calculate q_eval and q_next
-        q_next = self.Q_eval.forward(new_state_batch)
-        q_next[done_batch] = 0.0
         
-        if self.iter_counter % self.target_rate == 0: # in each target_rate the q_target is updated
-            self.q_target = reward_batch + self.gamma*T.max(q_next, dim=1)[0]
+        if self.iter_counter % self.target_rate == 0:
+            self.Q_target = self.Q_eval
 
-        self.q_target.requiers_grad = False
-        loss = self.Q_eval.loss(q_eval, self.q_target).to(self.Q_eval.device)
+        q_next = self.Q_target.forward(new_state_batch)
+        q_next = T.where(done_batch.unsqueeze(1), T.tensor(0.0, device=self.Q_eval.device), q_next)
+        q_target = (reward_batch + self.gamma * T.max(q_next, dim=1)[0]).detach()
+
+        loss = self.Q_eval.loss(q_eval, q_target).to(self.Q_eval.device)
+
         loss.backward()
         self.Q_eval.optimizer.step()
 
