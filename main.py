@@ -11,7 +11,7 @@ agent_hyperparameters = {
     'batch_size': 10,
     'action_size': 4,
     'epsilon_min': 0.1,
-    'epsilon_dec': 0.999,
+    'epsilon_dec': 0.995,
     'input_size': 9,
     'lr': 0.01,
     'lr_dec': 0.9
@@ -30,11 +30,11 @@ def calculate_reward(queue):
     _, _, _, done, stuck = queue.queue[-1]
     prev_state, _, prev_next_state, _, _ = queue.queue[0]
     if (prev_state == prev_next_state).all():
-        return -100
+        return -10
     if stuck:  # If the agent does something that doesnt contribute
-        return -50 * (beta**step_queue.qsize())
+        return -200 * (beta**step_queue.qsize())
     if done:
-        return 20 * (beta**step_queue.qsize())
+        return 500 * (beta**step_queue.qsize())
 
     return -1  # For each step subtruct 5 points for inefficiency
 
@@ -121,7 +121,10 @@ for episode in range(1, max_episodes + 1):
 
         if step_queue.full():
             reward = calculate_reward(step_queue)
-            agent.store_transition(reward, *step_queue.get())
+            if np.random.random() <= 0.1:
+                agent.store_transition(reward, *step_queue.get())
+            else:
+                step_queue.get()
 
         if successful_episodes >= successes_before_train:
             if step % agent.replay_rate == 0:
@@ -139,6 +142,7 @@ for episode in range(1, max_episodes + 1):
         else:
             continuous_successes = 0
             if stuck:
+                steps_per_episode.append(max_steps)
                 break
 
 

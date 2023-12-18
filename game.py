@@ -207,8 +207,3 @@ class SokobanGame:
                 if tile in (3, 4):
                     end_level = False
         return end_level
-
-# if __name__ == '__main__':
-#     game = SokobanGame()
-#     while True:
-#         game.play_step()
