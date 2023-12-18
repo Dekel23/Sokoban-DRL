@@ -64,7 +64,7 @@ for episode in range(1, max_episodes + 1):
             if step % agent.replay_rate == 0:
                 agent.learn()
 
-        if done:
+        if done:    
             successful_episodes += 1
             continuous_successes += 1
             print(

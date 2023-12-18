@@ -40,6 +40,8 @@ class Agent:
                  epsilon_min, epsilon_dec, max_mem_size=100000):
         self.gamma = gamma
 
+        self.q_target = None
+
         # Parameters that control the randomness of the agent
         self.epsilon = epsilon
         self.epsilon_min = epsilon_min
@@ -120,10 +122,10 @@ class Agent:
         q_next[done_batch] = 0.0
         
         if self.iter_counter % self.target_rate == 0: # in each target_rate the q_target is updated
-            q_target = reward_batch + self.gamma*T.max(q_next, dim=1)[0]
+            self.q_target = reward_batch + self.gamma*T.max(q_next, dim=1)[0]
 
-
-        loss = self.Q_eval.loss(q_eval, q_target).to(self.Q_eval.device)
+        self.q_target.requiers_grad = False
+        loss = self.Q_eval.loss(q_eval, self.q_target).to(self.Q_eval.device)
         loss.backward()
         self.Q_eval.optimizer.step()
 
