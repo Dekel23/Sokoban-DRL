@@ -23,6 +23,11 @@ def proccess_state(map_info):
     state = np.reshape(state, (agent_hyperparameters['input_size'],))
     return state
 
+def calculate_reward(state,action,next_state,done):
+    if state == next_state:
+        return -100
+
+
 # init agent
 agent = Agent(**agent_hyperparameters)
 
@@ -54,11 +59,11 @@ for episode in range(1, max_episodes + 1):
     for step in range(1, max_steps + 1):
         state = proccess_state(env.map_info)
         action = agent.choose_action(state=state)
-        next_state, reward, done = env.step_action(action=action)
+        done = env.step_action(action=action)
         next_state = proccess_state(env.map_info)
         
-        if (reward < 0 and np.random.random() < 0.1) or reward > 0:
-            agent.store_transition(state, action, reward, next_state, done)
+        # if (reward < 0 and np.random.random() < 0.1) or reward > 0:
+        #     agent.store_transition(state, action, reward, next_state, done)
 
         if successful_episodes >= successes_before_train:
             if step % agent.replay_rate == 0:

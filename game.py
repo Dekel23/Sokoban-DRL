@@ -74,7 +74,7 @@ class SokobanGame:
 
         self.game_map.update_ui()
 
-        return self.map_info, -1+11*self.check_end(), self.check_end()  # next_state, reward, done
+        return self.check_end()  # done
 
     # Step to do difined by the keyboard
     # def play_step(self):
