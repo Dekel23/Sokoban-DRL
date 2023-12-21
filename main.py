@@ -4,45 +4,35 @@ import matplotlib.pyplot as plt
 import queue
 import pygame
 import numpy as np
+from copy import deepcopy
 
-agent_hyperparameters = {
-    'gamma': 0.99,
-    'epsilon': 1.0,
-    'batch_size': 10,
-    'action_size': 4,
-    'epsilon_min': 0.1,
-    'epsilon_dec': 0.995,
-    'input_size': 9,
-    'lr': 0.01,
-    'lr_dec': 0.9
-}
-
-
-def proccess_state(map_info):
-    state = map_info[1:-1]
+def proccess_state(map_info): # Take the game information and transform it into a stateS
+    state = map_info[1:-1] # Cut the frame
     state = [row[1:-1] for row in state]
-    state = np.array(state, dtype=np.float32)
+
+    state = np.array(state, dtype=np.float32) #transform to np.array in 1d
     state = np.reshape(state, (agent_hyperparameters['input_size'],))
     return state
 
 
-def calculate_reward(queue):
-    _, _, _, done, stuck = queue.queue[-1]
-    prev_state, _, prev_next_state, _, _ = queue.queue[0]
-    if (prev_state == prev_next_state).all():
-        return -10
-    if stuck:  # If the agent does something that doesnt contribute
-        return -200 * (beta**step_queue.qsize())
-    if done:
-        return 500 * (beta**step_queue.qsize())
+def calculate_reward(queue): # Cuclulate the reward of a step basted on queue of the next steps
+    _, _, _, done, stuck = queue.queue[-1] # info for the latest state
+    prev_state, _, prev_next_state, _, _ = queue.queue[0] # info for the earliest state
 
-    return -1  # For each step subtruct 5 points for inefficiency
+    if (prev_state == prev_next_state).all(): # If the agent chose wasteful action
+        return -10
+    if stuck:  # If the agent stuck the boxes
+        return -200 * (reward_dacey**step_queue.qsize())
+    if done: # If the agent finished the game
+        return 500 * (reward_dacey**step_queue.qsize())
+
+    return -1  # Reward for each step for inefficiency
 
 
 def check_all_boxes(board):
     for row in range(len(board)):
         for col in range(len(board[0])):
-            if board[row][col] == 4: # if box
+            if board[row][col] == 4: # For any box not on target
                 if is_box_stuck(board, row, col):
                     return True
     
@@ -50,16 +40,15 @@ def check_all_boxes(board):
 
 
 def is_box_stuck(board, row, col): # if 2 adjacent directions blocked the box is stuck
-    board_copy = [row[:] for row in board]
-    board_copy[row][col] = 0
+    board[row][col] = 0
 
-    if row > len(board_copy) or col > len(board_copy[0]):
+    if row > len(board) or col > len(board[0]):
         return False
 
-    down = (board_copy[row+1][col] in [0,1] or (board_copy[row+1][col] in [4,5] and is_box_stuck(board_copy,row+1,col)))
-    up = (board_copy[row-1][col] in [0,1] or (board_copy[row-1][col] in [4,5] and is_box_stuck(board_copy,row-1,col)))
-    left = (board_copy[row][col-1] in [0,1] or (board_copy[row][col-1] in [4,5] and is_box_stuck(board_copy,row,col-1)))
-    right = (board_copy[row][col+1] in [0,1] or (board_copy[row][col+1] in [4,5] and is_box_stuck(board_copy,row,col+1)))
+    down = (board[row+1][col] in [0,1] or (board[row+1][col] in [4,5] and is_box_stuck(board,row+1,col)))
+    up = (board[row-1][col] in [0,1] or (board[row-1][col] in [4,5] and is_box_stuck(board,row-1,col)))
+    left = (board[row][col-1] in [0,1] or (board[row][col-1] in [4,5] and is_box_stuck(board,row,col-1)))
+    right = (board[row][col+1] in [0,1] or (board[row][col+1] in [4,5] and is_box_stuck(board,row,col+1)))
 
     if (left and up) or (up and right) or (right and down) or (down and left):
         return True
@@ -67,17 +56,23 @@ def is_box_stuck(board, row, col): # if 2 adjacent directions blocked the box is
     return False
 
 
-def empty_queue(step_queue):
+def empty_queue(step_queue): # If the agent done or stuck we reward and store the latest steps
     while not step_queue.empty():
         reward = calculate_reward(step_queue)
         agent.store_transition(reward, *step_queue.get())
 
-def clone(lst):
-    copy = []
-    copy.extend(lst)
-    return copy
-
 # init agent
+agent_hyperparameters = {
+    'gamma': 0.99,
+    'epsilon': 1.0,
+    'batch_size': 10,
+    'action_size': 4,
+    'epsilon_min': 0.1,
+    'epsilon_dec': 0.99,
+    'input_size': 9,
+    'lr': 0.01,
+    'lr_dec': 0.9
+}
 agent = Agent(**agent_hyperparameters)
 
 # init environment (game)
@@ -95,7 +90,8 @@ continuous_successes = 0
 steps_per_episode = []
 
 step_queue_size = 5
-beta = 0.9 # reward decay
+reward_dacey = 0.9
+
 
 for episode in range(1, max_episodes + 1):
     if continuous_successes >= continuous_successes_goal:
@@ -111,7 +107,7 @@ for episode in range(1, max_episodes + 1):
         action = agent.choose_action(state=state)
         done = env.step_action(action=action)
         next_state = proccess_state(env.map_info)
-        stuck = check_all_boxes(env.map_info)
+        stuck = check_all_boxes(deepcopy(env.map_info))
 
         step_queue.put((state, action, next_state, done, stuck))
 
@@ -146,6 +142,7 @@ for episode in range(1, max_episodes + 1):
                 break
 
 
+# Plot the step per episod graph
 plt.plot(range(1, len(steps_per_episode) + 1), steps_per_episode)
 plt.xlabel('Episode')
 plt.ylabel('Steps')
