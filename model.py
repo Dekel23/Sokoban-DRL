@@ -57,7 +57,7 @@ class Agent:
         self.lr = lr
         self.lr_dec = lr_dec
         self.iter_counter = 0
-        self.replay_rate = 10
+        self.replay_rate = 5
         self.target_rate = 10
 
         #self.q_target = T.zeros(batch_size)

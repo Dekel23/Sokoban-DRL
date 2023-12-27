@@ -20,13 +20,13 @@ def calculate_reward(queue): # Cuclulate the reward of a step basted on queue of
     prev_state, _, prev_next_state, _, _ = queue.queue[0] # info for the earliest state
 
     if (prev_state == prev_next_state).all(): # If the agent chose wasteful action
-        return -10
+        return reward_for_waste
     if stuck:  # If the agent stuck the boxes
-        return -200 * (reward_dacey**step_queue.qsize())
+        return reward_for_stuck * (stuck_reward_dacey**step_queue.qsize())
     if done: # If the agent finished the game
-        return 500 * (reward_dacey**step_queue.qsize())
+        return reward_for_done * (done_reward_dacey**step_queue.qsize())
 
-    return -1  # Reward for each step for inefficiency
+    return reward_for_move  # Reward for each step for inefficiency
 
 
 def check_all_boxes(board):
@@ -67,8 +67,8 @@ agent_hyperparameters = {
     'epsilon': 1.0,
     'batch_size': 10,
     'action_size': 4,
-    'epsilon_min': 0.1,
-    'epsilon_dec': 0.99,
+    'epsilon_min': 0.15,
+    'epsilon_dec': 0.9995,
     'input_size': 9,
     'lr': 0.01,
     'lr_dec': 0.9
@@ -80,25 +80,32 @@ pygame.init()
 env = SokobanGame()
 
 # training parameters
-max_episodes = 400
-max_steps = 100
+max_episodes = 200
+max_steps = 200
 
 successes_before_train = 5
 successful_episodes = 0
-continuous_successes_goal = 8
+continuous_successes_goal = 10
 continuous_successes = 0
 steps_per_episode = []
+ramdom_step_transition_rate = 0.001 # rate that non spaciel step is store in memory
 
-step_queue_size = 5
-reward_dacey = 0.9
+# reward parameters
+step_queue_size = 4
+done_reward_dacey = 0.5
+stuck_reward_dacey = 0.5
 
+reward_for_stuck = 0
+reward_for_waste = -10
+reward_for_done = 10000
+reward_for_move = -10
 
 for episode in range(1, max_episodes + 1):
     if continuous_successes >= continuous_successes_goal:
         print("Agent training finished!")
         break
         
-    print(f"Episode: {episode}")
+    print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
     step_queue = queue.Queue(maxsize=step_queue_size)
 
@@ -117,20 +124,19 @@ for episode in range(1, max_episodes + 1):
 
         if step_queue.full():
             reward = calculate_reward(step_queue)
-            if np.random.random() <= 0.1:
+            if np.random.random() <= ramdom_step_transition_rate:
                 agent.store_transition(reward, *step_queue.get())
             else:
                 step_queue.get()
 
         if successful_episodes >= successes_before_train:
-            if step % agent.replay_rate == 0:
-                agent.learn()
+            #if step % agent.replay_rate == 0:
+            agent.learn()
 
         if done:
             successful_episodes += 1
             continuous_successes += 1
-            print(
-                f"SOLVED! Episode {episode} Steps: {step} Epsilon {agent.epsilon:.4f}")
+            print(f"SOLVED! Episode {episode} Steps: {step} Epsilon {agent.epsilon:.4f}")
             
             steps_per_episode.append(step)
 

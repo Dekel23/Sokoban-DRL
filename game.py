@@ -5,7 +5,7 @@ import csv
 import os
 from map.graphics import TileMap
 from enum import Enum
-
+import numpy as np
 
 class Action(Enum):
     UP = 0
@@ -20,6 +20,7 @@ LAST_LEVEL = 62
 class SokobanGame:
     def __init__(self):
         self.level = 61
+
         self.reset_level()
 
     # Reset the game to the current level
@@ -38,9 +39,10 @@ class SokobanGame:
             for row in data:
                 row = [int(item) for item in list(row)]
                 self.map_info.append(row)
-
-        self.game_map = TileMap(self.map_info)
+                
         self.search_keeper_pos()
+        self.game_map = TileMap(self.map_info)
+
 
     # Find the position of the keeper
     def search_keeper_pos(self):
