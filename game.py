@@ -7,6 +7,7 @@ from map.graphics import TileMap
 from enum import Enum
 import numpy as np
 
+
 class Action(Enum):
     UP = 0
     RIGHT = 1
@@ -16,6 +17,7 @@ class Action(Enum):
 
 FIRST_LEVEL = 1
 LAST_LEVEL = 62
+
 
 class SokobanGame:
     def __init__(self):
@@ -39,17 +41,16 @@ class SokobanGame:
             for row in data:
                 row = [int(item) for item in list(row)]
                 self.map_info.append(row)
-                
+
         self.search_keeper_pos()
         self.game_map = TileMap(self.map_info)
-
 
     # Find the position of the keeper
     def search_keeper_pos(self):
         x, y = 0, 0
         for y, row in enumerate(self.map_info):
             for x, tile in enumerate(row):
-                if tile in (6, 7): # Keeper type of tiles
+                if tile in (6, 7):  # Keeper type of tiles
                     self.x = x
                     self.y = y
 
@@ -58,58 +59,27 @@ class SokobanGame:
         self.level += 1
         self.reset_level()
 
-    # Reset the game to the previos level
+    # Reset the game to the previous level
     def prev_level(self):
         self.level -= 1
         self.reset_level()
 
-    # Step to do difined by action
+    # Step to take defined by action
     def step_action(self, action):
-        if action == 0:
+        if action == 0:  # UP
             self.move((-1, 0))
-        if action == 1:
+        if action == 1:  # RIGHT
             self.move((0, 1))
-        if action == 2:
+        if action == 2:  # DOWN
             self.move((1, 0))
-        if action == 3:
+        if action == 3:  # LEFT
             self.move((0, -1))
 
         self.game_map.update_ui()
 
         return self.check_end()  # done
 
-    # Step to do difined by the keyboard
-    # def play_step(self):
-    #     for event in pygame.event.get():
-    #         if event.type == pygame.QUIT:
-    #             pygame.quit()
-    #             quit()
-    #         if event.type == pygame.KEYDOWN:
-    #             key_name = pygame.key.name(event.key)
-    #             match key_name:
-    #                 case 'd':
-    #                     self.move((0,1))
-    #                 case 'a':
-    #                     self.move((0,-1))
-    #                 case 'w':
-    #                     self.move((-1,0))
-    #                 case 's':
-    #                     self.move((1,0))
-    #                 case 'q':
-    #                     pygame.quit()
-    #                     quit()
-    #                 case 'r':
-    #                     self.reset_level()
-    #                 case 'n':
-    #                     self.next_level()
-    #                 case 'p':
-    #                     self.prev_level()
-
-    #     if self.check_end():
-    #         self.reset_level()
-    #     self.game_map.update_ui()
-
-    # Difine what changes need to be done by the step
+    # Define what changes need to be done by the step
     def move(self, dist):
         info_to_change = []
         if self.map_info[self.y + dist[0]][self.x + dist[1]] == 1:  # If go to wall do nothing
@@ -124,7 +94,7 @@ class SokobanGame:
 
             # Set x,y to new values
             self.y, self.x = self.y + dist[0], self.x + dist[1]
-            # Change new pos to kepper
+            # Change new pos to keeper
             info_to_change.append((self.y, self.x, 6))
         elif self.map_info[self.y + dist[0]][self.x + dist[1]] == 3:  # If go to target
             if self.map_info[self.y][self.x] == 6:  # If he was not on target
@@ -136,11 +106,11 @@ class SokobanGame:
 
             # Set x,y to new values
             self.y, self.x = self.y + dist[0], self.x + dist[1]
-            # Change new pos to kepper & target
+            # Change new pos to keeper & target
             info_to_change.append((self.y, self.x, 7))
         elif self.map_info[self.y + dist[0]][self.x + dist[1]] == 4:  # If go to cargo
             # If after cargo air continue
-            if self.map_info[self.y + 2*dist[0]][self.x + 2*dist[1]] not in (1, 4, 5):
+            if self.map_info[self.y + 2 * dist[0]][self.x + 2 * dist[1]] not in (1, 4, 5):
                 if self.map_info[self.y][self.x] == 6:  # If he was not on target
                     # Change the pos to empty
                     info_to_change.append((self.y, self.x, 2))
@@ -150,7 +120,7 @@ class SokobanGame:
 
                 # Set x,y to new values
                 self.y, self.x = self.y + dist[0], self.x + dist[1]
-                # Change new pos to kepper
+                # Change new pos to keeper
                 info_to_change.append((self.y, self.x, 6))
 
                 # If after cargo empty
@@ -165,7 +135,7 @@ class SokobanGame:
                         (self.y + dist[0], self.x + dist[1], 5))
         elif self.map_info[self.y + dist[0]][self.x + dist[1]] == 5:  # If go to cargo & target
             # If after cargo air continue
-            if self.map_info[self.y + 2*dist[0]][self.x + 2*dist[1]] not in (1, 4, 5):
+            if self.map_info[self.y + 2 * dist[0]][self.x + 2 * dist[1]] not in (1, 4, 5):
                 if self.map_info[self.y][self.x] == 6:  # If he was not on target
                     # Change the pos to empty
                     info_to_change.append((self.y, self.x, 2))
@@ -175,7 +145,7 @@ class SokobanGame:
 
                 # Set x,y to new values
                 self.y, self.x = self.y + dist[0], self.x + dist[1]
-                # Change new pos to kepper & target
+                # Change new pos to keeper & target
                 info_to_change.append((self.y, self.x, 7))
 
                 # If after cargo empty
@@ -190,7 +160,7 @@ class SokobanGame:
                         (self.y + dist[0], self.x + dist[1], 5))
         else:  # Otherwise something went wrong
             raise Exception('Invalid map')
-        
+
         self.change_map(info_to_change)
 
     # Change the game map info by the move (and graphics)
