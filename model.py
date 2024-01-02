@@ -78,7 +78,7 @@ class Agent:
             self.mem_size, dtype=np.bool_)  # Done memory
 
     # Store move in the game in the memory
-    def store_transition(self, reward, state, action, next_state, done, stuck): 
+    def store_transition(self, reward, state, action, next_state, done): 
         index = self.mem_counter % self.mem_size
         self.state_memory[index] = state
         self.new_state_memory[index] = next_state

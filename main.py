@@ -15,11 +15,8 @@ def proccess_state(map_info): # Take the game information and transform it into 
     return state
 
 
-def calculate_reward(queue): # Cuclulate the reward of a step basted on queue of the next steps
-    _, _, _, done, stuck = queue.queue[-1] # info for the latest state
-    prev_state, _, prev_next_state, _, _ = queue.queue[0] # info for the earliest state
-
-    if (prev_state == prev_next_state).all(): # If the agent chose wasteful action
+def calculate_reward(state, action, next_state, done, stuck): # Cuclulate the reward of a step basted on queue of the next steps
+    if (state == next_state).all(): # If the agent chose wasteful action
         return reward_for_waste
     if stuck:  # If the agent stuck the boxes
         return reward_for_stuck * (stuck_reward_dacey**step_queue.qsize())
@@ -116,18 +113,11 @@ for episode in range(1, max_episodes + 1):
         next_state = proccess_state(env.map_info)
         stuck = check_all_boxes(deepcopy(env.map_info))
 
-        step_queue.put((state, action, next_state, done, stuck))
-
-        #if (reward < 0 and np.random.random() < 0.1) or reward > 0:
-        if stuck or done:
-            empty_queue(step_queue)
-
-        if step_queue.full():
-            reward = calculate_reward(step_queue)
-            if np.random.random() <= ramdom_step_transition_rate:
-                agent.store_transition(reward, *step_queue.get())
-            else:
-                step_queue.get()
+        reward = calculate_reward(state, action, next_state, done, stuck)
+        if done or stuck:
+            agent.store_transition(reward, state, action, next_state, done)
+        elif np.random.random() <= ramdom_step_transition_rate:
+            agent.store_transition(reward, state, action, next_state, done)
 
         if successful_episodes >= successes_before_train:
             #if step % agent.replay_rate == 0:
