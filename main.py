@@ -69,7 +69,7 @@ agent_hyperparameters = {
     'action_size': 4,
     'epsilon_min': 0.1,
     'epsilon_dec': 0.99,
-    'input_size': 25,
+    'input_size': 12,
     'lr': 0.01,
     'lr_dec': 0.9
 }
