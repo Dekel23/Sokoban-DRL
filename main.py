@@ -69,7 +69,7 @@ agent_hyperparameters = {
     'action_size': 4,
     'epsilon_min': 0.1,
     'epsilon_dec': 0.99,
-    'input_size': 9,
+    'input_size': 25,
     'lr': 0.01,
     'lr_dec': 0.9
 }
@@ -85,12 +85,14 @@ max_steps = 100
 
 successes_before_train = 5
 successful_episodes = 0
-continuous_successes_goal = 8
+continuous_successes_goal = 10
 continuous_successes = 0
+success_flag = False
 steps_per_episode = []
 
 step_queue_size = 5
 reward_dacey = 0.9
+
 
 
 for episode in range(1, max_episodes + 1):
@@ -101,6 +103,7 @@ for episode in range(1, max_episodes + 1):
     print(f"Episode: {episode}")
     env.reset_level()
     step_queue = queue.Queue(maxsize=step_queue_size)
+
 
     for step in range(1, max_steps + 1):
         state = proccess_state(env.map_info)
@@ -133,14 +136,14 @@ for episode in range(1, max_episodes + 1):
                 f"SOLVED! Episode {episode} Steps: {step} Epsilon {agent.epsilon:.4f}")
             
             steps_per_episode.append(step)
-
             break
-        else:
-            continuous_successes = 0
-            if stuck:
-                steps_per_episode.append(max_steps)
-                break
 
+        if stuck:
+            steps_per_episode.append(max_steps)
+            break
+
+    if not done:
+        continuous_successes = 0
 
 # Plot the step per episod graph
 plt.plot(range(1, len(steps_per_episode) + 1), steps_per_episode)
