@@ -60,11 +60,11 @@ agent_hyperparameters = {
     'epsilon': 1.0,
     'batch_size': 10,
     'action_size': 4,
-    'epsilon_min': 0.15,
-    'epsilon_dec': 0.99,
-    'input_size': 9,
+    'epsilon_min': 0.1,
+    'epsilon_dec': 0.99995,
+    'input_size': 16,
     'lr': 0.0001,
-    'lr_dec': 0.99999
+    'lr_dec': 0.9999
 }
 agent = Agent(**agent_hyperparameters)
 
@@ -74,23 +74,21 @@ env = SokobanGame()
 
 # training parameters
 max_episodes = 2000
-max_steps = 10
+max_random_steps = 20
+max_learning_steps = 20
 
 successes_before_train = 10
 successful_episodes = 0
 continuous_successes_goal = 10
 continuous_successes = 0
 steps_per_episode = []
-ramdom_step_transition_rate = 0.01  # rate that non-special step is store in memory
+ramdom_step_transition_rate = 0.05  # rate that non-special step is store in memory
 
 # reward parameters
-done_reward_dacey = 0.5
-stuck_reward_dacey = 0.5
-
 reward_for_stuck = 0
-reward_for_waste = -5
-reward_for_done = 5
-reward_for_move = -1
+reward_for_waste = -3
+reward_for_done = 10
+reward_for_move = -0.5
 
 for episode in range(1, max_episodes + 1):
     if continuous_successes >= continuous_successes_goal:
@@ -100,7 +98,7 @@ for episode in range(1, max_episodes + 1):
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
 
-    for step in range(1, max_steps + 1):
+    for step in range(1, max_random_steps + 1):
         state = process_state(env.map_info)
         action = agent.choose_action(state=state)
         done = env.step_action(action=action)
@@ -113,6 +111,7 @@ for episode in range(1, max_episodes + 1):
         if successful_episodes >= successes_before_train:
             # if step % agent.replay_rate == 0:
             agent.learn()
+            max_random_steps = max_learning_steps
 
         if done:
             successful_episodes += 1
@@ -125,13 +124,13 @@ for episode in range(1, max_episodes + 1):
 
         elif stuck:
             continuous_successes = 0
-            steps_per_episode.append(max_steps)
+            steps_per_episode.append(max_random_steps)
 
             break
 
     if not (done or stuck):
         continuous_successes = 0
-        steps_per_episode.append(max_steps)
+        steps_per_episode.append(max_random_steps)
 
 
 # Plot the step per episode graph

@@ -7,22 +7,12 @@ from map.graphics import TileMap
 from enum import Enum
 import numpy as np
 
-
-class Action(Enum):
-    UP = 0
-    RIGHT = 1
-    DOWN = 2
-    LEFT = 3
-
-
 FIRST_LEVEL = 1
 LAST_LEVEL = 62
-
 
 class SokobanGame:
     def __init__(self):
         self.level = 61
-
         self.reset_level()
 
     # Reset the game to the current level
