@@ -1,151 +1,124 @@
 from game import SokobanGame
 from model import Agent
 import matplotlib.pyplot as plt
-import queue
+
 import pygame
 import numpy as np
-from copy import deepcopy
+from collections import deque
 
-def proccess_state(map_info): # Take the game information and transform it into a stateS
-    state = map_info[1:-1] # Cut the frame
+def process_state(map_info, reshape=True):  # Take the game information and transform it into a stateS
+    state = map_info[1:-1]  # Cut the frame
     state = [row[1:-1] for row in state]
 
-    state = np.array(state, dtype=np.float32) #transform to np.array in 1d
-    state = np.reshape(state, (agent_hyperparameters['input_size'],))
+    state = np.array(state, dtype=np.float32)  # transform to np.array in 1d
+    if reshape:
+        state = np.reshape(state, (agent_hyperparameters['input_size'],))
+    
     return state
 
+# base reward parameters
+reward_for_stuck = 0
+reward_for_waste = -3
+reward_for_done = 5
+reward_for_move = -0.5
 
-def calculate_reward(queue): # Cuclulate the reward of a step basted on queue of the next steps
-    _, _, _, done, stuck = queue.queue[-1] # info for the latest state
-    prev_state, _, prev_next_state, _, _ = queue.queue[0] # info for the earliest state
+# Find all path lengths to target
+def bfs(_map, target_x, target_y):
+    rows, cols = _map.shape
+    distances = np.full_like(_map, np.inf)
+    distances[target_y, target_x] = 0
+    queue = deque([(target_y, target_x)])
 
-    if (prev_state == prev_next_state).all(): # If the agent chose wasteful action
-        return -10
-    if stuck:  # If the agent stuck the boxes
-        return -200 * (reward_dacey**step_queue.qsize())
-    if done: # If the agent finished the game
-        return 500 * (reward_dacey**step_queue.qsize())
+    while queue:
+        current_node = queue.popleft()
+        i, j = current_node
 
-    return -1  # Reward for each step for inefficiency
+        for di, dj in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            new_i, new_j = i + di, j + dj
+            if (0 <= new_i < rows and 0 <= new_j < cols and _map[new_i, new_j] != 1 and distances[new_i, new_j] > distances[current_node] + 1):
+                distances[new_i, new_j] = distances[current_node] + 1
+                queue.append((new_i, new_j))
 
-
-def check_all_boxes(board):
-    for row in range(len(board)):
-        for col in range(len(board[0])):
-            if board[row][col] == 4: # For any box not on target
-                if is_box_stuck(board, row, col):
-                    return True
-    
-    return False
-
-
-def is_box_stuck(board, row, col): # if 2 adjacent directions blocked the box is stuck
-    board[row][col] = 0
-
-    if row > len(board) or col > len(board[0]):
-        return False
-
-    down = (board[row+1][col] in [0,1] or (board[row+1][col] in [4,5] and is_box_stuck(board,row+1,col)))
-    up = (board[row-1][col] in [0,1] or (board[row-1][col] in [4,5] and is_box_stuck(board,row-1,col)))
-    left = (board[row][col-1] in [0,1] or (board[row][col-1] in [4,5] and is_box_stuck(board,row,col-1)))
-    right = (board[row][col+1] in [0,1] or (board[row][col+1] in [4,5] and is_box_stuck(board,row,col+1)))
-
-    if (left and up) or (up and right) or (right and down) or (down and left):
-        return True
-    
-    return False
+    return distances
 
 
-def empty_queue(step_queue): # If the agent done or stuck we reward and store the latest steps
-    while not step_queue.empty():
-        reward = calculate_reward(step_queue)
-        agent.store_transition(reward, *step_queue.get())
+def calculate_reward(state, action, next_state, done, distances, alpha): # Cuclulate the reward of a step basted on queue of the next steps
+    if (state == next_state).all(): # If the agent chose wasteful action
+        return reward_for_waste
+    if done:  # If the agent finished the game
+        return reward_for_done
+
+    # Reward for each step for inefficiency with regard to distance from 
+    #distance_relation = alpha * (np.max(distances) / distances[env.cargo_y - 1,env.cargo_x - 1])
+    #distance_cargo_keeper = alpha * np.max(distances) / (np.abs(env.cargo_y - env.y) + np.abs(env.cargo_y - env.y))
+    return reward_for_move
+
+
+# init environment (game)
+pygame.init()
+env = SokobanGame(level=61, graphics_enable=False)
 
 # init agent
 agent_hyperparameters = {
     'gamma': 0.99,
     'epsilon': 1.0,
-    'batch_size': 10,
-    'action_size': 4,
     'epsilon_min': 0.1,
-    'epsilon_dec': 0.99,
-    'input_size': 12,
-    'lr': 0.01,
-    'lr_dec': 0.9
+    'epsilon_decay': 0.999,
+    'input_size': (len(env.map_info) - 2) * (len(env.map_info[0]) - 2),
+    'beta': 0.99
 }
 agent = Agent(**agent_hyperparameters)
 
-# init environment (game)
-pygame.init()
-env = SokobanGame()
-
 # training parameters
-max_episodes = 400
-max_steps = 100
+max_episodes = 10000
+max_steps = 30
 
-successes_before_train = 5
+successes_before_train = 10
 successful_episodes = 0
-continuous_successes_goal = 10
+continuous_successes_goal = 20
 continuous_successes = 0
-success_flag = False
 steps_per_episode = []
 
-step_queue_size = 5
-reward_dacey = 0.9
-
-
+init_state = process_state(env.map_info, reshape=False)
+distances = bfs(init_state, env.target_x - 1, env.target_y - 1)
+alpha = 0.2 # reward by distance multiplyer
 
 for episode in range(1, max_episodes + 1):
     if continuous_successes >= continuous_successes_goal:
         print("Agent training finished!")
         break
-        
-    print(f"Episode: {episode}")
-    env.reset_level()
-    step_queue = queue.Queue(maxsize=step_queue_size)
 
+    print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
+    env.reset_level()
 
     for step in range(1, max_steps + 1):
-        state = proccess_state(env.map_info)
+        state = process_state(env.map_info)
         action = agent.choose_action(state=state)
         done = env.step_action(action=action)
-        next_state = proccess_state(env.map_info)
-        stuck = check_all_boxes(deepcopy(env.map_info))
+        next_state = process_state(env.map_info)
 
-        step_queue.put((state, action, next_state, done, stuck))
-
-        #if (reward < 0 and np.random.random() < 0.1) or reward > 0:
-        if stuck or done:
-            empty_queue(step_queue)
-
-        if step_queue.full():
-            reward = calculate_reward(step_queue)
-            if np.random.random() <= 0.1:
-                agent.store_transition(reward, *step_queue.get())
-            else:
-                step_queue.get()
+        reward = calculate_reward(state, action, next_state, done, distances, alpha)
+        agent.store_replay(state, action, reward, next_state, done)
 
         if successful_episodes >= successes_before_train:
-            if step % agent.replay_rate == 0:
-                agent.learn()
+            agent.replay()
+            agent.update_target_model()
 
         if done:
             successful_episodes += 1
             continuous_successes += 1
-            print(
-                f"SOLVED! Episode {episode} Steps: {step} Epsilon {agent.epsilon:.4f}")
-            
+            print(f"SOLVED! Episode {episode} Steps: {step} Epsilon {agent.epsilon:.4f}")
+            print(continuous_successes)
             steps_per_episode.append(step)
-            break
-
-        if stuck:
-            steps_per_episode.append(max_steps)
+            agent.copy_to_prioritized_replay(step)
             break
 
     if not done:
         continuous_successes = 0
+        steps_per_episode.append(max_steps)
 
-# Plot the step per episod graph
+
+# Plot the step per episode graph
 plt.plot(range(1, len(steps_per_episode) + 1), steps_per_episode)
 plt.xlabel('Episode')
 plt.ylabel('Steps')
