@@ -1,71 +1,57 @@
+from tkinter import Tk
 import pygame
 from map.spritesheet import Spritesheet
-from tkinter import *
-
-pygame.init()
-win = Tk()
-MAX_WIDTH, MAX_HEIGHT = win.winfo_screenwidth() , win.winfo_screenheight() - 64
-SURFACE = pygame.Surface((MAX_WIDTH, MAX_HEIGHT))
-DISPLAY = pygame.display.set_mode((MAX_WIDTH, MAX_HEIGHT), pygame.RESIZABLE)
-TILE_SIZE = 32
-SPRITESHEET = Spritesheet('map/images/spritesheet.png')
-TILE_TYPES = ['empty.png', 'wall.png', 'floor.png', 'target.png', 'cargo.png', 'cargo_on_target.png',
-               'keeper.png', 'keeper_on_target.png']
 
 class Tile(pygame.sprite.Sprite):
-    def __init__(self, name, x, y):
+    def __init__(self, name):
         pygame.sprite.Sprite.__init__(self)
-        
-        self.image = SPRITESHEET.parse_sprite(name) # Tile image
-        self.rect = self.image.get_rect() # Tile image proportions
-        self.rect.x, self.rect.y = x, y # Position on screen
-
-    # Draw the tile on the surface
-    def draw(self, surface):
-        surface.blit(self.image, (self.rect.x, self.rect.y))
-
-class TileMap():
-    def __init__(self, map_info):
-        self.load_tiles(map_info)
-        self.surface = pygame.Surface((self.map_width, self.map_height)) # New Map Surface
-        self.display = pygame.display.set_mode((self.map_width, self.map_height), pygame.RESIZABLE)
-        
-    # Draw the surface on screen
-    def draw_map(self, surface):
-        self.surface.set_colorkey((0, 0, 0))
-        surface.blit(self.surface, (0, 0))
-
-    # Draw the map to the surface
-    def load_map(self):
-        self.surface.set_colorkey((0, 0, 0))
-        for tile in self.tiles:
-            tile.draw(self.surface)
+        self.spritesheet = Spritesheet('map/spritesheet.png')
+        self.image = self.spritesheet.parse_sprite(name)
     
-    # Load the current map file to tiles list and set the map proportions
-    def load_tiles(self, map_info):
-        tiles = []
+    def draw(self, x, y, surface):
+        surface.blit(self.image, (x,y))
 
-        x, y = 0, 0
+class TileMap:
+    def __init__(self, map_info):
+
+        pygame.init()
+        self.tile_size = 32
+        win = Tk()
+        self.max_width, self.max_height = win.winfo_screenwidth() , win.winfo_screenheight() - 64
+        self.max_surface = pygame.Surface((self.max_width, self.max_height))
+        self.max_display = pygame.display.set_mode((self.max_width, self.max_height), pygame.RESIZABLE)
+        self.resize_display(map_info)
+
+        self.tile_types = ['empty.png', 'wall.png', 'floor.png', 'target.png', 'cargo.png', 'cargo_on_target.png', 'keeper.png', 'keeper_on_target.png']
+        self.tiles = []
+        for var in self.tile_types:
+            self.tiles.append(Tile(var))
+        
+    def resize_display(self, map_info):
+        self.map_height = len(map_info) * self.tile_size
+        self.map_width = len(map_info[0]) * self.tile_size
+        self.small_surface = pygame.Surface((self.map_width, self.map_height))
+        self.small_display = pygame.display.set_mode((self.map_width, self.map_height), pygame.RESIZABLE)
+    
+    def load_level(self, map_info, level):
+        if not (self.map_height == len(map_info) * self.tile_size and self.map_width == len(map_info[0]) * self.tile_size):
+            self.resize_display(map_info)
+        pygame.display.set_caption(f'Sokoban Level {level}')
+        self.load_map(map_info)
+
+    def load_map(self, map_info):
+        self.small_surface.set_colorkey((0, 0, 0))
         for y, row in enumerate(map_info):
             for x, tile in enumerate(row):
-                try:
-                    new_tile = Tile(TILE_TYPES[int(tile)], x * TILE_SIZE, y * TILE_SIZE)
-                    tiles.append(new_tile)
-                except:
-                    raise Exception('Invalid tile value (invalid map)')
-        
-        self.map_width, self.map_height = (x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE
-        self.tiles = tiles
+                self.tiles[int(tile)].draw(x * self.tile_size, y * self.tile_size, self.small_surface)
     
-    def change_tile(self, tile_info):
-        (y, x, type) = tile_info
-        tile_index = int(y * self.map_width/TILE_SIZE + x)
-        new_tile = Tile(TILE_TYPES[int(type)], x * TILE_SIZE, y * TILE_SIZE)
-        self.tiles[tile_index] = new_tile
-    
-    def update_ui(self):
-        self.load_map()
-        SURFACE.fill((0, 0, 0))
-        self.draw_map(SURFACE)
-        DISPLAY.blit(SURFACE, (0, 0))
+    def draw_map(self):
+        self.small_surface.set_colorkey((0, 0, 0))
+        self.max_surface.blit(self.small_surface, (0, 0))
+
+    def update_ui(self, map_info):
+        self.load_map(map_info)
+        self.max_surface.fill((0, 0, 0))
+        self.draw_map()
+        self.max_display.blit(self.max_surface, (0, 0))
         pygame.display.update()
