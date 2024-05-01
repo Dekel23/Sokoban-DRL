@@ -59,7 +59,7 @@ agent_hyperparameters = {
     'gamma': 0.99,
     'epsilon': 1.0,
     'epsilon_min': 0.1,
-    'epsilon_decay': 0.9995,
+    'epsilon_decay': 0.999,
     'input_size': (len(env.map_info) - 2) * (len(env.map_info[0]) - 2),
     'beta': 0.99
 }
@@ -77,13 +77,13 @@ steps_per_episode = []
 
 # base reward parameters
 reward_for_stuck = 0
-reward_for_waste = -1
+reward_for_waste = -2
 reward_for_done = 5
 reward_for_move = -0.5
-reward_for_loop = -1
+reward_for_loop = -2
 
-state_queue_length = 8
-state_queue = deque([None for _ in range(state_queue_length)])
+state_queue_length = 4
+state_queue = deque([None] * state_queue_length)
 
 init_state = process_state(env.map_info, reshape=False)
 distances = bfs(init_state, env.target_x - 1, env.target_y - 1)
@@ -93,6 +93,10 @@ for episode in range(1, max_episodes + 1):
     if continuous_successes >= continuous_successes_goal:
         print("Agent training finished!")
         break
+
+    state_queue.clear()
+    for _ in range(state_queue_length):
+        state_queue.appendleft(None)
 
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
@@ -107,7 +111,7 @@ for episode in range(1, max_episodes + 1):
         agent.store_replay(state, action, reward, next_state, done)
 
         state_queue.pop()
-        state_queue.append(state)
+        state_queue.appendleft(next_state)
 
         if successful_episodes >= successes_before_train:
             agent.replay()

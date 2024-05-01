@@ -65,6 +65,7 @@ class Agent(nn.Module):
             state_tensor = torch.tensor(state, dtype=torch.float32)
             next_state_tensor = torch.tensor(next_state, dtype=torch.float32)
             target = self.model(state_tensor)
+
             if done:
                 target[action] = reward
             else:
