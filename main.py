@@ -42,8 +42,10 @@ def calculate_reward(state, action, next_state, done, distances, alpha): # Cuclu
         return reward_for_waste
     if done:  # If the agent finished the game
         return reward_for_done
-    for item in list(state_queue):
+    state_list = list(state_queue)
+    for i, item in enumerate(state_list):
         if (next_state == item).all():
+            #change_loop_rewards(len(state_list) - 1 - i)
             loop_counter += 1
             return reward_for_loop
 
@@ -52,6 +54,9 @@ def calculate_reward(state, action, next_state, done, distances, alpha): # Cuclu
     #distance_cargo_keeper = alpha * np.max(distances) / (np.abs(env.cargo_y - env.y) + np.abs(env.cargo_y - env.y))
     return reward_for_move
 
+def change_loop_rewards(num):
+    for i in range(num):
+        agent.replay_buffer[-1-i][2] = reward_for_loop
 
 # init environment (game)
 env = SokobanGame(level=61, graphics_enable=False)
