@@ -22,7 +22,7 @@ class Agent(nn.Module):
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
         self.beta = beta
-        
+
         self.batch_size = 10
         self.prioritized_batch_size = 10
         self.replay_buffer = deque(maxlen=15000)
@@ -38,11 +38,11 @@ class Agent(nn.Module):
         return model, optimizer
     
     def store_replay(self, state, action, reward, next_state, done):
-        self.replay_buffer.append((state, action, reward, next_state, done))
+        self.replay_buffer.appendleft([state, action, reward, next_state, done])
 
     def copy_to_prioritized_replay(self, steps):
         for i in range(min(self.prioritized_batch_size, steps)):
-            self.prioritized_replay_buffer.append(self.replay_buffer[-1 - i])
+            self.prioritized_replay_buffer.appendleft(self.replay_buffer[i])
 
     def choose_action(self, state):
         if random.random() > self.epsilon:

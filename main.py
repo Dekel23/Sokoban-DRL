@@ -42,21 +42,51 @@ def calculate_reward(state, action, next_state, done, distances, alpha): # Cuclu
         return reward_for_waste
     if done:  # If the agent finished the game
         return reward_for_done
-    state_list = list(state_queue)
-    for i, item in enumerate(state_list):
-        if (next_state == item).all():
-            #change_loop_rewards(len(state_list) - 1 - i)
-            loop_counter += 1
-            return reward_for_loop
+
+    if check_loop(next_state, state_queue):
+        loop_counter += 1
+        change_loop_rewards(state_queue)
+        fill_none(state_queue)
+        return reward_for_loop
+
+    # for i, item in enumerate(state_queue):
+    #     if (next_state == item).all():
+    #         change_loop_rewards(i)
+    #         loop_counter += 1
+    #         return reward_for_loop
 
     #Reward for each step for inefficiency with regard to distance from 
     #distance_relation = alpha * (np.max(distances) / distances[env.cargo_y - 1,env.cargo_x - 1])
     #distance_cargo_keeper = alpha * np.max(distances) / (np.abs(env.cargo_y - env.y) + np.abs(env.cargo_y - env.y))
     return reward_for_move
 
-def change_loop_rewards(num):
-    for i in range(num):
-        agent.replay_buffer[-1-i][2] = reward_for_loop
+def check_loop(state, state_queue):
+    for s in state_queue:
+        if (s is not None) and (state == s).all():
+            return True
+    
+    return False
+
+def change_loop_rewards(state_queue):
+    loop_length = None
+    for i in range(len(state_queue)):
+        if state_queue[i] is None:
+            loop_length = i
+            break
+    
+    if loop_length is None:
+        return
+    
+    for i in range(loop_length):    
+        agent.replay_buffer[i][2] = reward_for_loop * (reward_for_loop_decay ** (i + 1))
+    
+    # for i in range(num):
+    #     agent.replay_buffer[i][2] += reward_for_loop
+
+def fill_none(state_queue):
+    state_queue.clear()
+    for _ in range(state_queue_length):
+        state_queue.appendleft(None)
 
 # init environment (game)
 env = SokobanGame(level=61, graphics_enable=False)
@@ -66,7 +96,7 @@ agent_hyperparameters = {
     'gamma': 0.99,
     'epsilon': 1.0,
     'epsilon_min': 0.1,
-    'epsilon_decay': 0.999,
+    'epsilon_decay': 0.9992,
     'input_size': (len(env.map_info) - 2) * (len(env.map_info[0]) - 2),
     'beta': 0.99
 }
@@ -88,10 +118,11 @@ reward_for_stuck = 0
 reward_for_waste = -2
 reward_for_done = 10
 reward_for_move = -0.5
-reward_for_loop = -2
+reward_for_loop = -4
+reward_for_loop_decay = 0.75
 
-state_queue_length = 2
-state_queue = deque([None] * state_queue_length)
+state_queue_length = 5
+state_queue = deque(maxlen=state_queue_length)
 loop_counter = 0
 loops_per_episode = []
 
@@ -105,9 +136,7 @@ for episode in range(1, max_episodes + 1):
         break
     
     loop_counter = 0
-    state_queue.clear()
-    for _ in range(state_queue_length):
-        state_queue.appendleft(None)
+    fill_none(state_queue)
 
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
@@ -146,15 +175,19 @@ for episode in range(1, max_episodes + 1):
 
 
 # Plot the step per episode graph
+plt.subplot(211)
 plt.plot(range(1, len(steps_per_episode) + 1), steps_per_episode)
 plt.xlabel('Episode')
 plt.ylabel('Steps')
 plt.title('Steps per Episode')
-plt.show()
 
 # Plot loops per episode graph
+plt.subplot(212)
 plt.plot(range(1, len(loops_per_episode) + 1), loops_per_episode)
+
 plt.xlabel('Episode')
 plt.ylabel('Loops')
 plt.title('Loops per Episode')
+
+plt.tight_layout()
 plt.show()
