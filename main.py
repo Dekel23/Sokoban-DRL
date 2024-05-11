@@ -39,26 +39,20 @@ def bfs(_map, target_x, target_y):
 def calculate_reward(state, action, next_state, done, distances, alpha): # Cuclulate the reward of a step basted on queue of the next steps
     global loop_counter
     if (state == next_state).all(): # If the agent chose wasteful action
-        return reward_for_waste
+        return (reward_for_waste, 'waste')
     if done:  # If the agent finished the game
-        return reward_for_done
+        return (reward_for_done, 'done')
 
     if check_loop(next_state, state_queue):
         loop_counter += 1
-        change_loop_rewards(state_queue)
-        fill_none(state_queue)
-        return reward_for_loop
-
-    # for i, item in enumerate(state_queue):
-    #     if (next_state == item).all():
-    #         change_loop_rewards(i)
-    #         loop_counter += 1
-    #         return reward_for_loop
+        # change_loop_rewards(state_queue)
+        # fill_none(state_queue)
+        # return (reward_for_loop, 'loop')
 
     #Reward for each step for inefficiency with regard to distance from 
     #distance_relation = alpha * (np.max(distances) / distances[env.cargo_y - 1,env.cargo_x - 1])
     #distance_cargo_keeper = alpha * np.max(distances) / (np.abs(env.cargo_y - env.y) + np.abs(env.cargo_y - env.y))
-    return reward_for_move
+    return (reward_for_move, 'move')
 
 def check_loop(state, state_queue):
     for s in state_queue:
@@ -126,6 +120,8 @@ state_queue = deque(maxlen=state_queue_length)
 loop_counter = 0
 loops_per_episode = []
 
+accumulated_reward_per_epsiode = []
+
 init_state = process_state(env.map_info, reshape=False)
 distances = bfs(init_state, env.target_x - 1, env.target_y - 1)
 alpha = 0.2 # reward by distance multiplyer
@@ -141,6 +137,8 @@ for episode in range(1, max_episodes + 1):
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
 
+    accumulated_reward = 0
+
     for step in range(1, max_steps + 1):
         state = process_state(env.map_info)
         action = agent.choose_action(state=state)
@@ -148,7 +146,10 @@ for episode in range(1, max_episodes + 1):
         next_state = process_state(env.map_info)
 
         reward = calculate_reward(state, action, next_state, done, distances, alpha)
-        agent.store_replay(state, action, reward, next_state, done)
+        if reward[1] != 'loop':
+            accumulated_reward += reward[0]
+
+        agent.store_replay(state, action, reward[0], next_state, done)
 
         state_queue.pop()
         state_queue.appendleft(next_state)
@@ -166,6 +167,8 @@ for episode in range(1, max_episodes + 1):
             agent.copy_to_prioritized_replay(step)
             break
     
+    accumulated_reward_per_epsiode.append(accumulated_reward)
+    
     #print(f'number of loops in episode {episode} is {loop_counter}')
     loops_per_episode.append(loop_counter)
 
@@ -175,19 +178,26 @@ for episode in range(1, max_episodes + 1):
 
 
 # Plot the step per episode graph
-plt.subplot(211)
+plt.subplot(311)
 plt.plot(range(1, len(steps_per_episode) + 1), steps_per_episode)
 plt.xlabel('Episode')
 plt.ylabel('Steps')
 plt.title('Steps per Episode')
 
 # Plot loops per episode graph
-plt.subplot(212)
+plt.subplot(312)
 plt.plot(range(1, len(loops_per_episode) + 1), loops_per_episode)
-
 plt.xlabel('Episode')
 plt.ylabel('Loops')
 plt.title('Loops per Episode')
 
+# Plot loops per episode graph
+plt.subplot(313)
+plt.plot(range(1, len(accumulated_reward_per_epsiode) + 1), accumulated_reward_per_epsiode)
+plt.xlabel('Episode')
+plt.ylabel('Accumulated Reward')
+plt.title('Accumulated Reward per Episode')
+
 plt.tight_layout()
 plt.show()
+
