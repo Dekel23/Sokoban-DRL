@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from reward_gen import *
 
-def process_state(map_info, reshape=True):  # Take the game information and transform it into a stateS
+def process_state(map_info, reshape=False):  # Take the game information and transform it into a stateS
     state = map_info[1:-1]  # Cut the frame
     state = [row[1:-1] for row in state]
 
@@ -43,16 +43,16 @@ steps_per_episode = []
 target_rate = 5
 
 loops_per_episode = []
+accumulated_reward_per_epsiode = []
 
 for episode in range(1, max_episodes + 1):
     if continuous_successes >= continuous_successes_goal:
         print("Agent training finished!")
         break
     
-    reward_gen.reset()
-
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
+    reward_gen.reset()
 
     for step in range(1, max_steps + 1):
         state = process_state(env.map_info)
@@ -78,6 +78,7 @@ for episode in range(1, max_episodes + 1):
     
     #print(f'number of loops in episode {episode} is {loop_counter}')
     loops_per_episode.append(reward_gen.loop_counter)
+    accumulated_reward_per_epsiode.append(reward_gen.accumulated_reward)
 
     if not done:
         continuous_successes = 0
@@ -85,19 +86,25 @@ for episode in range(1, max_episodes + 1):
 
 
 # Plot the step per episode graph
-plt.subplot(211)
+plt.subplot(311)
 plt.plot(range(1, len(steps_per_episode) + 1), steps_per_episode)
 plt.xlabel('Episode')
 plt.ylabel('Steps')
 plt.title('Steps per Episode')
 
 # Plot loops per episode graph
-plt.subplot(212)
+plt.subplot(312)
 plt.plot(range(1, len(loops_per_episode) + 1), loops_per_episode)
-
 plt.xlabel('Episode')
 plt.ylabel('Loops')
 plt.title('Loops per Episode')
+
+# Plot loops per episode graph
+plt.subplot(313)
+plt.plot(range(1, len(accumulated_reward_per_epsiode) + 1), accumulated_reward_per_epsiode)
+plt.xlabel('Episode')
+plt.ylabel('Accumulated Reward')
+plt.title('Accumulated Reward per Episode')
 
 plt.tight_layout()
 plt.show()
