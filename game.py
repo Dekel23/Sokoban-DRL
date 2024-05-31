@@ -1,13 +1,7 @@
 import csv
 import os
-<<<<<<< HEAD
-from map.graphics import TileMap
-from enum import Enum
-import numpy as np
-=======
 import random
 
->>>>>>> reward_gen
 
 FIRST_LEVEL = 1
 LAST_LEVEL = 62
@@ -55,14 +49,9 @@ class SokobanGame:
             rand_x = random.randint(1, len(self.map_info[0]) - 2)
             rand_y = random.randint(1, len(self.map_info) - 2)
 
-<<<<<<< HEAD
-        self.search_keeper_pos()
-        self.game_map = TileMap(self.map_info)
-=======
             if self.map_info[rand_y][rand_x] in (2, 3): # Possible place for keeper
                 self.map_info[rand_y][rand_x] = 6 # Put keeper
                 break
->>>>>>> reward_gen
 
     # Find the position of the keeper
     def search_target_and_keeper_pos(self):
@@ -95,11 +84,7 @@ class SokobanGame:
     def prev_level(self):
         self.level -= 1
         self.reset_level()
-<<<<<<< HEAD
-
-=======
     
->>>>>>> reward_gen
     # Step to take defined by action
     def step_action(self, action):
         if action == 0:  # UP
@@ -115,11 +100,7 @@ class SokobanGame:
             self.game_map.update_ui(self.map_info)
 
         return self.check_end()  # done
-<<<<<<< HEAD
-
-=======
     
->>>>>>> reward_gen
     # Define what changes need to be done by the step
     def move(self, dist):
         info_to_change = []
@@ -161,11 +142,8 @@ class SokobanGame:
 
                 # Set x,y to new values
                 self.y, self.x = self.y + dist[0], self.x + dist[1]
-<<<<<<< HEAD
-=======
                 self.cargo_y += dist[0]
                 self.cargo_x += dist[1]
->>>>>>> reward_gen
                 # Change new pos to keeper
                 info_to_change.append((self.y, self.x, 6))
 
@@ -191,11 +169,8 @@ class SokobanGame:
 
                 # Set x,y to new values
                 self.y, self.x = self.y + dist[0], self.x + dist[1]
-<<<<<<< HEAD
-=======
                 self.cargo_y += dist[0]
                 self.cargo_x += dist[1]
->>>>>>> reward_gen
                 # Change new pos to keeper & target
                 info_to_change.append((self.y, self.x, 7))
 
@@ -210,11 +185,7 @@ class SokobanGame:
                     info_to_change.append(
                         (self.y + dist[0], self.x + dist[1], 5))
         else:  # Otherwise something went wrong
-<<<<<<< HEAD
-            raise Exception('Invalid map')
-=======
             raise Exception('Invalid move')
->>>>>>> reward_gen
 
         self.change_map(info_to_change)
 
