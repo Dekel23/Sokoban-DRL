@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from reward_gen import *
 
-def process_state(map_info, reshape=False):  # Take the game information and transform it into a stateS
+def process_state(map_info, reshape=True):  # Take the game information and transform it into a stateS
     state = map_info[1:-1]  # Cut the frame
     state = [row[1:-1] for row in state]
 
@@ -16,14 +16,14 @@ def process_state(map_info, reshape=False):  # Take the game information and tra
     return state
 
 # init environment (game)
-env = SokobanGame(level=61, graphics_enable=True)
+env = SokobanGame(level=61, graphics_enable=False)
 
 # init agent
 agent_hyperparameters = {
     'gamma': 0.99,
     'epsilon': 1.0,
     'epsilon_min': 0.1,
-    'epsilon_decay': 0.9992,
+    'epsilon_decay': 0.995,
     'input_size': (len(env.map_info) - 2) * (len(env.map_info[0]) - 2),
     'beta': 0.99
 }

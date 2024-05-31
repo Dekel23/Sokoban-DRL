@@ -87,3 +87,8 @@ class Agent(nn.Module):
     def update_target_model(self):
         for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
             target_param.data.copy_(self.beta * target_param.data + (1 - self.beta) * param.data)
+    
+    def save_onnx_model(self):
+        torch_input = torch.randn(1, 16)
+        onnx_program = torch.onnx.dynamo_export(self.model, torch_input)
+        onnx_program.save("my_image_classifier.onnx")
