@@ -25,7 +25,8 @@ agent_hyperparameters = {
     'epsilon_min': 0.1,
     'epsilon_decay': 0.995,
     'input_size': (len(env.map_info) - 2) * (len(env.map_info[0]) - 2),
-    'beta': 0.99
+    'beta': 0.99,
+    'save_rate': 50
 }
 agent = Agent(**agent_hyperparameters)
 
@@ -50,7 +51,7 @@ for episode in range(1, max_episodes + 1):
         print("Agent training finished!")
         break
 
-    if episode % 50 == 0:
+    if episode % agent_hyperparameters['save_rate'] == 0:
         agent.save_onnx_model(episode)
     
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
