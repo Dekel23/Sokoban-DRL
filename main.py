@@ -25,9 +25,9 @@ agent_hyperparameters = {
     'epsilon_min': 0.1,
     'epsilon_decay': 0.995,
     'input_size': (len(env.map_info) - 2) * (len(env.map_info[0]) - 2),
-    'beta': 0.99,
-    'save_rate': 50
+    'beta': 0.99
 }
+
 agent = Agent(**agent_hyperparameters)
 
 reward_gen = Move_Done_Loop()
@@ -46,12 +46,14 @@ target_rate = 5
 loops_per_episode = []
 accumulated_reward_per_epsiode = []
 
+save_rate = 50
+
 for episode in range(1, max_episodes + 1):
     if continuous_successes >= continuous_successes_goal:
         print("Agent training finished!")
         break
 
-    if episode % agent_hyperparameters['save_rate'] == 0:
+    if episode % save_rate == 0:
         agent.save_onnx_model(episode)
     
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")

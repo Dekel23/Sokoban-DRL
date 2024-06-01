@@ -6,6 +6,9 @@ import torch.optim as optim
 import torch.nn as nn
 import torch
 
+from onnxsim import simplify 
+import onnx
+
 class Agent(nn.Module):
     def __init__(self, gamma, epsilon, epsilon_decay, epsilon_min, input_size, beta):
         super(Agent, self).__init__()
@@ -89,6 +92,19 @@ class Agent(nn.Module):
             target_param.data.copy_(self.beta * target_param.data + (1 - self.beta) * param.data)
     
     def save_onnx_model(self, episode):
-        torch_input = torch.randn(1, self.input_size)
-        onnx_program = torch.onnx.dynamo_export(self.model, torch_input)
-        onnx_program.save(f"onnxs/sokoban_model_{episode}.onnx")
+        torch_input = torch.randint(8 ,(1, self.input_size))
+        
+        # Export the model to ONNX
+        onnx_path = f"onnxs/sokoban_model_{episode}.onnx"
+        torch.onnx.export(self.model, torch_input, onnx_path, opset_version=18)
+        
+        # Load and simplify the ONNX model
+        onnx_model = onnx.load(onnx_path)
+        onnx_model_simplified, check = simplify(onnx_model)
+        
+        # Ensure the simplified model is valid
+        assert check, "Simplified ONNX model could not be validated"
+
+        # Save the simplified ONNX model
+        onnx.save(onnx_model_simplified, onnx_path)
+        print(f"Model saved to {onnx_path}")
