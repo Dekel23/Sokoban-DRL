@@ -1,23 +1,21 @@
 from collections import deque
-
 import random
-
 import torch.optim as optim
 import torch.nn as nn
 import torch
+from models import NLP_model
 
-from onnxsim import simplify 
-import onnx
-
-class Agent(nn.Module):
+class Agent():
     def __init__(self, gamma, epsilon, epsilon_decay, epsilon_min, input_size, beta):
-        super(Agent, self).__init__()
-
         self.input_size = input_size
         self.action_size = 4
         self.action_space = [i for i in range(self.action_size)]
-        self.model, self.model_optimizer = self._build_model()
-        self.target_model, self.target_model_optimizer = self._build_model()
+        
+        self.model = NLP_model(self.input_size, self.action_size)
+        self.model_optimizer = optim.Adam(self.model.parameters())
+        
+        self.target_model = NLP_model(self.input_size, self.action_size)
+        self.target_model_optimizer = optim.Adam(self.target_model.parameters())
         self.target_model.load_state_dict(self.model.state_dict())
 
         self.gamma = gamma
@@ -30,16 +28,7 @@ class Agent(nn.Module):
         self.prioritized_batch_size = 10
         self.replay_buffer = deque(maxlen=15000)
         self.prioritized_replay_buffer = deque(maxlen=5000)
-    
-    def _build_model(self):
-        model = nn.Sequential(
-            nn.Linear(self.input_size, self.input_size),
-            nn.ReLU(),
-            nn.Linear(self.input_size, self.action_size)
-        )
-        optimizer = optim.Adam(model.parameters())
-        return model, optimizer
-    
+
     def store_replay(self, state, action, reward, next_state, done):
         self.replay_buffer.appendleft([state, action, reward, next_state, done])
 
@@ -61,19 +50,20 @@ class Agent(nn.Module):
         minibatch = random.sample(self.replay_buffer, self.batch_size // 2)
         minibatch.extend(random.sample(self.prioritized_replay_buffer, self.batch_size // 2))
 
-        states = torch.zeros((self.batch_size, self.input_size))
-        targets = torch.zeros((self.batch_size, self.action_size))
+        states = torch.zeros((self.batch_size, self.input_size), dtype=torch.float32)
+        targets = torch.zeros((self.batch_size, self.action_size), dtype=torch.float32)
 
         for i, (state, action, reward, next_state, done) in enumerate(minibatch):
             state_tensor = torch.tensor(state, dtype=torch.float32)
             next_state_tensor = torch.tensor(next_state, dtype=torch.float32)
-            target = self.model(state_tensor)
+            target = self.model(state_tensor).detach()
 
             if done:
                 target[action] = reward
             else:
                 max_action = self.model(next_state_tensor).argmax().item()
                 target[action] = reward + self.gamma * self.target_model(next_state_tensor)[max_action].item()
+
             states[i] = state_tensor
             targets[i] = target
         
@@ -90,21 +80,3 @@ class Agent(nn.Module):
     def update_target_model(self):
         for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
             target_param.data.copy_(self.beta * target_param.data + (1 - self.beta) * param.data)
-    
-    def save_onnx_model(self, episode):
-        torch_input = torch.randint(8 ,(1, self.input_size))
-        
-        # Export the model to ONNX
-        onnx_path = f"onnxs/sokoban_model_{episode}.onnx"
-        torch.onnx.export(self.model, torch_input, onnx_path, opset_version=18)
-        
-        # Load and simplify the ONNX model
-        onnx_model = onnx.load(onnx_path)
-        onnx_model_simplified, check = simplify(onnx_model)
-        
-        # Ensure the simplified model is valid
-        assert check, "Simplified ONNX model could not be validated"
-
-        # Save the simplified ONNX model
-        onnx.save(onnx_model_simplified, onnx_path)
-        print(f"Model saved to {onnx_path}")

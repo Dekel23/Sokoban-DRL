@@ -1,5 +1,5 @@
 from game import SokobanGame
-from model import Agent
+from agent import Agent
 import matplotlib.pyplot as plt
 
 import numpy as np
@@ -54,7 +54,7 @@ for episode in range(1, max_episodes + 1):
         break
 
     if episode % save_rate == 0:
-        agent.save_onnx_model(episode)
+        agent.model.save_onnx_model(episode)
     
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
