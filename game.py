@@ -1,6 +1,7 @@
 import csv
 import os
 import random
+import numpy as np
 
 
 FIRST_LEVEL = 1
@@ -22,6 +23,15 @@ class SokobanGame:
             from map.graphics import TileMap
             self.game_map = TileMap(self.map_info)
 
+    def process_state(self, reshape=True):  # Take the game information and transform it into a stateS
+        state = self.map_info[1:-1]  # Cut the frame
+        state = [row[1:-1] for row in state]
+
+        state = np.array(state, dtype=np.float32)  # transform to np.array in 1d
+        if reshape:
+            state = np.reshape(state, ((len(self.map_info) - 2) * (len(self.map_info[0]) - 2),))
+        
+        return state
 
     def load_map_info(self):
         if self.level < FIRST_LEVEL or self.level > LAST_LEVEL:

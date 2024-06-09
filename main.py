@@ -5,16 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from reward_gen import *
 
-def process_state(map_info, reshape=True):  # Take the game information and transform it into a stateS
-    state = map_info[1:-1]  # Cut the frame
-    state = [row[1:-1] for row in state]
-
-    state = np.array(state, dtype=np.float32)  # transform to np.array in 1d
-    if reshape:
-        state = np.reshape(state, (agent_hyperparameters['input_size'],))
-    
-    return state
-
 # init environment (game)
 env = SokobanGame(level=61, graphics_enable=False)
 
@@ -61,10 +51,10 @@ for episode in range(1, max_episodes + 1):
     reward_gen.reset()
 
     for step in range(1, max_steps + 1):
-        state = process_state(env.map_info)
+        state = env.process_state()
         action = agent.choose_action(state=state)
         done = env.step_action(action=action)
-        next_state = process_state(env.map_info)
+        next_state = env.process_state()
 
         reward = reward_gen.calculate_reward(state, next_state, done, agent.replay_buffer)
         agent.store_replay(state, action, reward, next_state, done)
