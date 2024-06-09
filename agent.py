@@ -3,7 +3,7 @@ import random
 import torch.optim as optim
 import torch.nn as nn
 import torch
-from models import NLP_model
+from models import NLPModel
 
 class Agent():
     def __init__(self, gamma, epsilon, epsilon_decay, epsilon_min, input_size, beta):
@@ -11,10 +11,10 @@ class Agent():
         self.action_size = 4
         self.action_space = [i for i in range(self.action_size)]
         
-        self.model = NLP_model(self.input_size, self.action_size)
+        self.model = NLPModel(self.input_size, self.action_size)
         self.model_optimizer = optim.Adam(self.model.parameters())
         
-        self.target_model = NLP_model(self.input_size, self.action_size)
+        self.target_model = NLPModel(self.input_size, self.action_size)
         self.target_model_optimizer = optim.Adam(self.target_model.parameters())
         self.target_model.load_state_dict(self.model.state_dict())
 

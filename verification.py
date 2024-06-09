@@ -45,7 +45,7 @@ class Verificator:
         # self.model.outputVars = np.reshape(array_of_new_outputs, newshape=(1, original_amount_of_outputs*self.n_steps))
 
 def main():
-    ver = Verificator('./onnxs/sokoban_model_200.nnet', 2)
+    ver = Verificator('./onnxs/sokoban_model_200.onnx', 2)
     ver.stam()
 
 if __name__ == '__main__':

@@ -30,7 +30,7 @@ agent_hyperparameters = {
 
 agent = Agent(**agent_hyperparameters)
 
-reward_gen = Move_Done_Loop()
+reward_gen = MoveDoneLoop()
 
 # training parameters
 max_episodes = 1000

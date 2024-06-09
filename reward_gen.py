@@ -1,15 +1,15 @@
 from collections import deque
 import zope.interface
 
-class Reward_Gen(zope.interface.Interface):
+class RewardGen(zope.interface.Interface):
     def calculate_reward(*arg, **kargs):
         pass
     def reset(*arg, **kargs):
         pass
 
 
-@zope.interface.implementer(Reward_Gen)
-class Move_Done_Loop:
+@zope.interface.implementer(RewardGen)
+class MoveDoneLoop:
     def __init__(self) -> None:
         self.reward_for_waste = -2
         self.reward_for_done = 10
@@ -72,7 +72,7 @@ class Move_Done_Loop:
         for _ in range(self.state_queue.maxlen):
             self.state_queue.appendleft(None)
 
-@zope.interface.implementer(Reward_Gen)
+@zope.interface.implementer(RewardGen)
 class BFS:
     def calculate_reward(self, _map, target_x, target_y):
         # Find all path lengths to target

@@ -1,12 +1,12 @@
-# from onnxsim import simplify 
-# import onnx
+from onnxsim import simplify 
+import onnx
 
 import torch.nn as nn
 import torch
 
-class NLP_model(nn.Module):
+class NLPModel(nn.Module):
     def __init__(self, input_size, output_size):
-        super(NLP_model, self).__init__()
+        super(NLPModel, self).__init__()
         self.model = nn.Sequential(
             nn.Linear(input_size, input_size),
             nn.ReLU(),
@@ -19,8 +19,7 @@ class NLP_model(nn.Module):
         return self.model(x)
 
     def save_onnx_model(self, episode):
-        return
-        torch_input = torch.randint(8, (1, self.input_size), dtype=torch.float32)
+        torch_input = torch.randint(1, (1, self.input_size), dtype=torch.float32)
         
         # Export the model to ONNX
         onnx_path = f"onnxs/sokoban_model_{episode}.onnx"
