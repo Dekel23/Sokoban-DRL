@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from reward_gen import *
+from one_step_agent import KStepAgent
 
 # init environment (game)
 env = SokobanGame(level=61, graphics_enable=False)
@@ -19,6 +20,7 @@ agent_hyperparameters = {
 }
 
 agent = Agent(**agent_hyperparameters)
+one_step_agent = KStepAgent(env, agent_hyperparameters)
 
 reward_gen = MoveDoneLoop()
 
@@ -44,7 +46,7 @@ for episode in range(1, max_episodes + 1):
         break
 
     if episode % save_rate == 0:
-        agent.model.save_onnx_model(episode)
+        one_step_agent.save_onnx_model(episode)
     
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
@@ -55,6 +57,8 @@ for episode in range(1, max_episodes + 1):
         action = agent.choose_action(state=state)
         done = env.step_action(action=action)
         next_state = env.process_state()
+
+        a=one_step_agent(state)
 
         reward = reward_gen.calculate_reward(state, next_state, done, agent.replay_buffer)
         agent.store_replay(state, action, reward, next_state, done)

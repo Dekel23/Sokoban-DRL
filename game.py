@@ -33,6 +33,14 @@ class SokobanGame:
         
         return state
 
+    def set_map_info(self, state):
+        curr_state = state.reshape(len(self.map_info)-2, len(self.map_info[0])-2)
+
+        self.map_info = np.ones((len(self.map_info), len(self.map_info[0])))
+        self.map_info[1:-1, 1:-1] = curr_state
+
+        self.search_target_and_keeper_pos()
+
     def load_map_info(self):
         if self.level < FIRST_LEVEL or self.level > LAST_LEVEL:
             raise Exception('Invalid Level')
