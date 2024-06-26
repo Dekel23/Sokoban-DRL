@@ -9,18 +9,21 @@ from one_step_agent import KStepAgent
 # init environment (game)
 env = SokobanGame(level=61, graphics_enable=False)
 
+row = len(env.map_info)
+col = len(env.map_info[0])
+
 # init agent
 agent_hyperparameters = {
     'gamma': 0.99,
     'epsilon': 1.0,
     'epsilon_min': 0.1,
     'epsilon_decay': 0.995,
-    'input_size': (len(env.map_info) - 2) * (len(env.map_info[0]) - 2),
+    'input_size': (row - 2) * (col - 2),
     'beta': 0.99
 }
 
 agent = Agent(**agent_hyperparameters)
-one_step_agent = KStepAgent(env, agent_hyperparameters)
+one_step_agent = KStepAgent(agent_hyperparameters, row - 2, col - 2)
 
 reward_gen = MoveDoneLoop()
 
@@ -58,7 +61,7 @@ for episode in range(1, max_episodes + 1):
         done = env.step_action(action=action)
         next_state = env.process_state()
 
-        a=one_step_agent(state)
+        #a=one_step_agent(state)
 
         reward = reward_gen.calculate_reward(state, next_state, done, agent.replay_buffer)
         agent.store_replay(state, action, reward, next_state, done)
