@@ -92,26 +92,3 @@ class Agent(nn.Module):
     def update_target_model(self):
         for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
             target_param.data.copy_(self.beta * target_param.data + (1 - self.beta) * param.data)
-
-
-
-    def save_onnx_model(self, episode):
-        torch_input = torch.randint(1, (1, self.input_size), dtype=torch.float32)
-        
-        # Export the model to ONNX
-        onnx_path = f"onnxs/sokoban_model_{episode}.onnx"
-        torch.onnx.export(self, torch_input, onnx_path, opset_version=18)
-        
-        # Load and simplify the ONNX model
-        onnx_model = onnx.load(onnx_path)
-        # try:
-        #     onnx_model, check = simplify(onnx_model)
-        # except:
-        #     pass
-        
-        # Ensure the simplified model is valid
-        # assert check, "Simplified ONNX model could not be validated"
-
-        # Save the simplified ONNX model
-        onnx.save(onnx_model, onnx_path)
-        print(f"Model saved to {onnx_path}")

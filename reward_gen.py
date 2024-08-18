@@ -21,7 +21,7 @@ class MoveDoneLoop:
         self.loop_counter = 0
         self.accumulated_reward = 0
 
-    def calculate_reward(self, state, next_state, done, replay_buffer): # Cuclulate the reward of a step basted on queue of the next steps
+    def calculate_reward(self, state, next_state, done, replay_buffer): # Calculate the reward of a step basted on queue of the next steps
         reward = self.reward_for_move
         if (state == next_state).all(): # If the agent chose wasteful action
             reward = self.reward_for_waste
@@ -29,12 +29,12 @@ class MoveDoneLoop:
         elif done:  # If the agent finished the game
             reward = self.reward_for_done
             self.accumulated_reward += self.reward_for_done
-        elif self._check_loop(next_state):
-            self.loop_counter += 1
-            self._change_loop_rewards(replay_buffer)
-            self._fill_none()
-            reward = self.reward_for_loop
-            self.accumulated_reward += self.reward_for_move
+        # elif self._check_loop(next_state):
+        #     self.loop_counter += 1
+        #     self._change_loop_rewards(replay_buffer)
+        #     self._fill_none()
+        #     reward = self.reward_for_loop
+        #     self.accumulated_reward += self.reward_for_move
         else:
             self.accumulated_reward += self.reward_for_move
             

@@ -64,21 +64,22 @@ class OneStepAgent(Agent):
         # Export the model to ONNX
         onnx_path = f"onnxs/sokoban_model_{episode}.onnx"
         torch.onnx.export(self, dummy_input, onnx_path)
-        
+
         # Load and save the ONNX model
         onnx_model = onnx.load(onnx_path)
         onnx.save(onnx_model, onnx_path)
         print(f"Model saved to {onnx_path}")
 
 class KStepAgent(OneStepAgent):
-    def __init__(self, agent_p, row, col):
+    def __init__(self, agent_p, row, col, k=2):
         super(KStepAgent, self).__init__(agent_p, row, col)
+        self.k = k
 
-    def forward(self, state, k=1):
+    def forward(self, state):
         # Ensure state is a tensor
         state = state if isinstance(state, torch.Tensor) else torch.tensor(state, dtype=torch.float32)
         
         out = state
-        for _ in range(k):
+        for _ in range(self.k):
             out = super().forward(out)
         return out

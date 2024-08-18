@@ -14,7 +14,7 @@ col = len(env.map_info[0])
 
 # init agent
 agent_hyperparameters = {
-    'gamma': 0.99,
+    'gamma': 0.995,
     'epsilon': 1.0,
     'epsilon_min': 0.1,
     'epsilon_decay': 0.995,
@@ -23,7 +23,7 @@ agent_hyperparameters = {
 }
 
 agent = Agent(**agent_hyperparameters)
-one_step_agent = KStepAgent(agent_hyperparameters, row - 2, col - 2)
+two_step_agent = KStepAgent(agent_hyperparameters, row - 2, col - 2)
 
 reward_gen = MoveDoneLoop()
 
@@ -36,7 +36,6 @@ successful_episodes = 0
 continuous_successes_goal = 20
 continuous_successes = 0
 steps_per_episode = []
-target_rate = 5
 
 loops_per_episode = []
 accumulated_reward_per_epsiode = []
@@ -49,7 +48,8 @@ for episode in range(1, max_episodes + 1):
         break
 
     if episode % save_rate == 0:
-        one_step_agent.save_onnx_model(episode)
+        two_step_agent.model.load_state_dict(agent.model.state_dict())
+        two_step_agent.save_onnx_model(episode)
     
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
@@ -60,8 +60,6 @@ for episode in range(1, max_episodes + 1):
         action = agent.choose_action(state=state)
         done = env.step_action(action=action)
         next_state = env.process_state()
-
-        #a=one_step_agent(state)
 
         reward = reward_gen.calculate_reward(state, next_state, done, agent.replay_buffer)
         agent.store_replay(state, action, reward, next_state, done)
