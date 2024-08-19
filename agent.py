@@ -1,21 +1,24 @@
 from collections import deque
 import random
-import torch.optim as optim
 import torch.nn as nn
 import torch
-from copy import deepcopy
 import onnx
+import numpy as np
+from model_factory import *
 
 class Agent(nn.Module):
-    def __init__(self, gamma, epsilon, epsilon_decay, epsilon_min, input_size, beta):
+    def __init__(self, gamma, epsilon, epsilon_decay, epsilon_min, row, col, beta, model_type):
         super(Agent, self).__init__()
 
-        self.input_size = input_size
+        self.row = row
+        self.col = col
+        self.input_size = row * col
         self.action_size = 4
         self.action_space = [i for i in range(self.action_size)]
         
-        self.model, self.model_optimizer = self._build_model()
-        self.target_model, self.target_model_optimizer = self._build_model()
+        self.model_type = model_type
+        self.model, self.model_optimizer = build_model(self.model_type, self.row, self.col, self.input_size, self.action_size)
+        self.target_model, self.target_model_optimizer = build_model(model_type, self.row, self.col, self.input_size, self.action_size)
         self.target_model.load_state_dict(self.model.state_dict())
 
         self.gamma = gamma
@@ -24,19 +27,10 @@ class Agent(nn.Module):
         self.epsilon_min = epsilon_min
         self.beta = beta
 
-        self.batch_size = 10
+        self.batch_size = 20
         self.prioritized_batch_size = 10
         self.replay_buffer = deque(maxlen=15000)
         self.prioritized_replay_buffer = deque(maxlen=5000)
-    
-    def _build_model(self):
-        model = nn.Sequential(
-            nn.Linear(self.input_size, self.input_size),
-            nn.ReLU(),
-            nn.Linear(self.input_size, self.action_size)
-        )
-        optimizer = optim.Adam(model.parameters())
-        return model, optimizer
 
     def forward(self, x):
         return self.model(x)
@@ -46,11 +40,11 @@ class Agent(nn.Module):
 
     def copy_to_prioritized_replay(self, steps):
         for i in range(min(self.prioritized_batch_size, steps)):
-            self.prioritized_replay_buffer.appendleft(self.replay_buffer[i])
+            self.prioritized_replay_buffer.appendleft(self.replay_buffer.pop())
 
     def choose_action(self, state):
         if random.random() > self.epsilon:
-            state = torch.tensor(state, dtype=torch.float32)
+            state = torch.tensor(np.reshape(state, (self.row * self.col,)), dtype=torch.float32)
             actions = self(state)
             action = torch.argmax(actions).item()
         else:
@@ -59,8 +53,8 @@ class Agent(nn.Module):
         return action
     
     def replay(self):
-        minibatch = random.sample(self.replay_buffer, self.batch_size // 2)
-        minibatch.extend(random.sample(self.prioritized_replay_buffer, self.batch_size // 2))
+        minibatch = random.sample(self.replay_buffer, 1*self.batch_size // 4)
+        minibatch.extend(random.sample(self.prioritized_replay_buffer, 3*self.batch_size // 4))
 
         states = torch.zeros((self.batch_size, self.input_size), dtype=torch.float32)
         targets = torch.zeros((self.batch_size, self.action_size), dtype=torch.float32)
@@ -92,3 +86,16 @@ class Agent(nn.Module):
     def update_target_model(self):
         for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
             target_param.data.copy_(self.beta * target_param.data + (1 - self.beta) * param.data)
+
+    def save_onnx_model(self, episode):
+        # Use a dummy input tensor that matches the expected input size
+        dummy_input = torch.tensor([6,2,2,2,2,2,2,2,2,2,4,2,2,2,2,3], dtype=torch.float32)
+        
+        # Export the model to ONNX
+        onnx_path = f"onnxs/sokoban_model_{episode}.onnx"
+        torch.onnx.export(self, dummy_input, onnx_path)
+
+        # Load and save the ONNX model
+        onnx_model = onnx.load(onnx_path)
+        onnx.save(onnx_model, onnx_path)
+        print(f"Model saved to {onnx_path}")

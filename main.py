@@ -7,25 +7,29 @@ from reward_gen import *
 from one_step_agent import KStepAgent
 
 # init environment (game)
-env = SokobanGame(level=61, graphics_enable=False)
+env = SokobanGame(level=61, graphics_enable=True)
 
 row = len(env.map_info)
 col = len(env.map_info[0])
+
+model_type = "NN1"
 
 # init agent
 agent_hyperparameters = {
     'gamma': 0.995,
     'epsilon': 1.0,
     'epsilon_min': 0.1,
-    'epsilon_decay': 0.995,
-    'input_size': (row - 2) * (col - 2),
-    'beta': 0.99
+    'epsilon_decay': 0.999,
+    'row': row-2,
+    'col': col-2,
+    'beta': 0.99,
+    'model_type': model_type
 }
 
 agent = Agent(**agent_hyperparameters)
-two_step_agent = KStepAgent(agent_hyperparameters, row - 2, col - 2)
+#two_step_agent = KStepAgent(agent_hyperparameters, row - 2, col - 2)
 
-reward_gen = MoveDoneLoop()
+reward_gen = DistanceMeasure()
 
 # training parameters
 max_episodes = 1000
@@ -47,9 +51,9 @@ for episode in range(1, max_episodes + 1):
         print("Agent training finished!")
         break
 
-    if episode % save_rate == 0:
-        two_step_agent.model.load_state_dict(agent.model.state_dict())
-        two_step_agent.save_onnx_model(episode)
+    # if episode % save_rate == 0:
+    #     two_step_agent.model.load_state_dict(agent.model.state_dict())
+    #     two_step_agent.save_onnx_model(episode)
     
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
@@ -62,6 +66,9 @@ for episode in range(1, max_episodes + 1):
         next_state = env.process_state()
 
         reward = reward_gen.calculate_reward(state, next_state, done, agent.replay_buffer)
+
+        state = np.reshape(state, ((row - 2) * (col - 2),))
+        next_state = np.reshape(next_state, ((row - 2) * (col - 2),))
         agent.store_replay(state, action, reward, next_state, done)
 
         if successful_episodes >= successes_before_train:
