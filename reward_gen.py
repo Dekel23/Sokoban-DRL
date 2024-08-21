@@ -1,84 +1,70 @@
 from collections import deque
-import zope.interface
+from abc import ABC, abstractmethod
 import numpy as np
 
 
-class RewardGen(zope.interface.Interface):
-    def calculate_reward(*arg, **kargs):
-        pass
-    def reset(*arg, **kargs):
-        pass
+class RewardGenerator(ABC):
+    def __init__(self, loop_size):
+        super().__init__()
 
-
-@zope.interface.implementer(RewardGen)
-class MoveDoneLoop:
-    def __init__(self) -> None:
-        self.reward_for_waste = -2
-        self.reward_for_done = 10
-        self.reward_for_move = -0.5
-        self.reward_for_loop = -4
-        self.reward_for_loop_decay = 0.75
-        self.state_queue_length = 5
-        self.state_queue = deque(maxlen=self.state_queue_length)
         self.loop_counter = 0
+        self.loop_size = loop_size
         self.accumulated_reward = 0
 
-    def calculate_reward(self, state, next_state, done, replay_buffer): # Calculate the reward of a step basted on queue of the next steps
-        reward = self.reward_for_move
-        if (state == next_state).all(): # If the agent chose wasteful action
-            reward = self.reward_for_waste
-            self.accumulated_reward += self.reward_for_waste
-        elif done:  # If the agent finished the game
-            reward = self.reward_for_done
-            self.accumulated_reward += self.reward_for_done
-        elif self._check_loop(next_state):
-            self.loop_counter += 1
-            self._change_loop_rewards(replay_buffer)
-            self._fill_none()
-            reward = self.reward_for_loop
-            self.accumulated_reward += self.reward_for_move
-        else:
-            self.accumulated_reward += self.reward_for_move
-            
-        self.state_queue.pop()
-        self.state_queue.appendleft(next_state)
-        return reward
-    
-    def _check_loop(self, state):
-        for s in self.state_queue:
-            if (s is not None) and (state == s).all():
-                return True
-        
-        return False
-
-    def _change_loop_rewards(self, replay_buffer):
-        loop_length = None
-        for i in range(len(self.state_queue)):
-            if self.state_queue[i] is None:
-                loop_length = i
-                break
-        
-        if loop_length is None:
-            return
-        
-        for i in range(loop_length):    
-            replay_buffer[i][2] = self.reward_for_loop * (self.reward_for_loop_decay ** (i + 1))
+    @ abstractmethod
+    def calculate_reward(self, *arg, **kargs):
+        pass
 
     def reset(self):
         self.loop_counter = 0
         self.accumulated_reward = 0
-        self._fill_none()
-    
-    def _fill_none(self):
-        self.state_queue.clear()
-        for _ in range(self.state_queue.maxlen):
-            self.state_queue.appendleft(None)
 
-@zope.interface.implementer(RewardGen)
-class DistanceMeasure:
+    def _check_loop(self, state, queue):
+        for i in range(min(self.loop_size, len(queue))):
+            s = queue[i][3]
+            if (s is not None) and (np.reshape(state, (len(state) * len(state[0]),)) == s).all():
+                self.loop_counter += 1
+                return i
+        
+        return -1
+    
+    def calc_accumulated(func):
+
+        def inner(self, *args, **kwargs):
+            reward = func(self, *args, **kwargs)
+            self.accumulated_reward += reward
+            return reward
+        return inner
+
+class SimpleAndLoop(RewardGenerator): # for no checking loops set loop_size to 0
+    def __init__(self, r_waste, r_done, r_move, r_loop, loop_decay, loop_size):
+        super().__init__(loop_size=loop_size)
+
+        self.reward_waste = r_waste
+        self.reward_done = r_done
+        self.reward_move = r_move
+        self.reward_loop = r_loop
+        self.loop_decay = loop_decay
+
+    @ RewardGenerator.calc_accumulated
+    def calculate_reward(self, state, next_state, done, replay_buffer):
+        if done:
+            return self.reward_done
+        if (state == next_state).all():
+            return self.reward_waste
+        idx = self._check_loop(next_state, replay_buffer)
+        if idx != -1:
+            self._change_loop_rewards(idx, replay_buffer)
+            return self.reward_loop
+        return self.reward_move
+
+    def _change_loop_rewards(self, idx, replay_buffer):
+        for i in range(idx):    
+            replay_buffer[i][2] = self.reward_loop * (self.loop_decay ** (i + 1))
+
+class DistanceMeasure(RewardGenerator):
     def __init__(self):
-        self.loop_counter = 0
-        self.accumulated_reward = 0
+        super().__init__(loop_size=0)
 
     def calculate_reward(self, grid, next_grid, done, buffer):
         if done:
@@ -109,9 +95,6 @@ class DistanceMeasure:
             reward -= 2
 
         return reward
-    
-    def reset(self):
-        pass
 
     def possible_path(self, grid, y, x, object_type):
         n, m = grid.shape

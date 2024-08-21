@@ -1,65 +1,70 @@
-from game import SokobanGame
-from agent import Agent
-import matplotlib.pyplot as plt
 
 import numpy as np
+import matplotlib.pyplot as plt
+
+from agent import Agent
+from model_factory import *
 from reward_gen import *
-from one_step_agent import KStepAgent
+from game import SokobanGame
 
-# init environment (game)
-env = SokobanGame(level=61, graphics_enable=True)
+# init env
+env = SokobanGame(level=61, graphics_enable=False)
+row = len(env.map_info) - 2
+col = len(env.map_info[0]) - 2
 
-row = len(env.map_info)
-col = len(env.map_info[0])
-
+# init model
 model_type = "NN1"
+model_parameters = {
+
+}
+model, optimizer = build_model(name=model_type, row=row, col=col, input_size=row*col, output_size=4, **model_parameters)
 
 # init agent
 agent_hyperparameters = {
-    'gamma': 0.995,
+    'gamma': 0.95,
     'epsilon': 1.0,
     'epsilon_min': 0.1,
     'epsilon_decay': 0.999,
-    'row': row-2,
-    'col': col-2,
     'beta': 0.99,
-    'model_type': model_type
+}
+agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
+
+# init reward generator
+reward_hyperparameters = {
+    'r_waste': -5,
+    'r_done': 50,
+    'r_move': -0.5,
+    'r_loop': -5, 
+    'loop_decay': 0.75, 
+    'loop_size': 5
+}
+reward_gen = SimpleAndLoop(**reward_hyperparameters)
+
+train_hyperparameters = {
+    'max_episodes': 1000,
+    'max_steps': 30,
+    'successes_before_train': 10,
+    'continuous_successes_goal': 20
 }
 
-agent = Agent(**agent_hyperparameters)
-#two_step_agent = KStepAgent(agent_hyperparameters, row - 2, col - 2)
-
-reward_gen = DistanceMeasure()
-
-# training parameters
-max_episodes = 1000
-max_steps = 30
-
-successes_before_train = 10
 successful_episodes = 0
-continuous_successes_goal = 20
 continuous_successes = 0
 steps_per_episode = []
-
 loops_per_episode = []
 accumulated_reward_per_epsiode = []
 
-save_rate = 50
 
-for episode in range(1, max_episodes + 1):
-    if continuous_successes >= continuous_successes_goal:
+for episode in range(1, train_hyperparameters['max_episodes'] + 1):
+
+    if continuous_successes >= train_hyperparameters['continuous_successes_goal']:
         print("Agent training finished!")
         break
-
-    # if episode % save_rate == 0:
-    #     two_step_agent.model.load_state_dict(agent.model.state_dict())
-    #     two_step_agent.save_onnx_model(episode)
     
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()
     reward_gen.reset()
 
-    for step in range(1, max_steps + 1):
+    for step in range(1, train_hyperparameters['max_steps'] + 1):
         state = env.process_state()
         action = agent.choose_action(state=state)
         done = env.step_action(action=action)
@@ -67,11 +72,11 @@ for episode in range(1, max_episodes + 1):
 
         reward = reward_gen.calculate_reward(state, next_state, done, agent.replay_buffer)
 
-        state = np.reshape(state, ((row - 2) * (col - 2),))
-        next_state = np.reshape(next_state, ((row - 2) * (col - 2),))
+        state = np.reshape(state, (row * col,))
+        next_state = np.reshape(next_state, (row * col,))
         agent.store_replay(state, action, reward, next_state, done)
 
-        if successful_episodes >= successes_before_train:
+        if successful_episodes >= train_hyperparameters['successes_before_train']:
             agent.replay()
             agent.update_target_model()
 
@@ -90,7 +95,7 @@ for episode in range(1, max_episodes + 1):
 
     if not done:
         continuous_successes = 0
-        steps_per_episode.append(max_steps)
+        steps_per_episode.append(train_hyperparameters['max_steps'])
 
 
 # Plot the step per episode graph

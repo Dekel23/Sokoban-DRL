@@ -7,7 +7,7 @@ import numpy as np
 from model_factory import *
 
 class Agent(nn.Module):
-    def __init__(self, gamma, epsilon, epsilon_decay, epsilon_min, row, col, beta, model_type):
+    def __init__(self, model, optimizer, row, col, gamma, epsilon, epsilon_decay, epsilon_min, beta):
         super(Agent, self).__init__()
 
         self.row = row
@@ -16,9 +16,8 @@ class Agent(nn.Module):
         self.action_size = 4
         self.action_space = [i for i in range(self.action_size)]
         
-        self.model_type = model_type
-        self.model, self.model_optimizer = build_model(self.model_type, self.row, self.col, self.input_size, self.action_size)
-        self.target_model, self.target_model_optimizer = build_model(model_type, self.row, self.col, self.input_size, self.action_size)
+        self.model, self.model_optimizer = model, optimizer
+        self.target_model, self.target_model_optimizer = model, optimizer
         self.target_model.load_state_dict(self.model.state_dict())
 
         self.gamma = gamma
@@ -40,7 +39,7 @@ class Agent(nn.Module):
 
     def copy_to_prioritized_replay(self, steps):
         for i in range(min(self.prioritized_batch_size, steps)):
-            self.prioritized_replay_buffer.appendleft(self.replay_buffer.pop())
+            self.prioritized_replay_buffer.appendleft(self.replay_buffer[i])
 
     def choose_action(self, state):
         if random.random() > self.epsilon:
