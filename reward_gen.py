@@ -63,36 +63,46 @@ class SimpleAndLoop(RewardGenerator): # for no checking loops set loop_size to 0
             replay_buffer[i][2] = self.reward_loop * (self.loop_decay ** (i + 1))
 
 class DistanceMeasure(RewardGenerator):
-    def __init__(self):
+    def __init__(self, r_waste, r_done, r_move, r_loop, loop_decay, loop_size):
         super().__init__(loop_size=0)
 
+    @ RewardGenerator.calc_accumulated
     def calculate_reward(self, grid, next_grid, done, buffer):
         if done:
-            return 10
+            return 0
         
-        # curr_pos = np.argwhere((grid == 6) | (grid == 7))[0]
-        # curr_keeper_to_box, curr_box_pos = self.possible_path(grid, curr_pos[0], curr_pos[1], 4)        
-        # curr_box_to_target, _ = self.possible_path(grid, curr_box_pos[0], curr_box_pos[1], 3)
+        if np.array_equal(grid, next_grid):
+            return -10
+        
+        curr_pos = np.argwhere((grid == 6) | (grid == 7))[0]
+        curr_keeper_to_box, curr_box_pos = self.possible_path(grid, curr_pos[0], curr_pos[1], 4)        
+        curr_box_to_target, _ = self.possible_path(grid, curr_box_pos[0], curr_box_pos[1], 3)
 
         next_pos = np.argwhere((next_grid == 6) | (next_grid == 7))[0]
         next_keeper_to_box, next_box_pos = self.possible_path(next_grid, next_pos[0], next_pos[1], 4)        
         next_box_to_target, next_target_pos = self.possible_path(next_grid, next_box_pos[0], next_box_pos[1], 3)
 
-        # curr_value = 1 / (curr_keeper_to_box + curr_box_to_target -1) + len(grid[np.where(grid == 5)])
-        next_value = -3* (next_keeper_to_box + next_box_to_target -1) + len(next_grid[np.where(next_grid == 5)])
-        reward = next_value
+        # # curr_value = 1 / (curr_keeper_to_box + curr_box_to_target -1) + len(grid[np.where(grid == 5)])
+        # next_value = -3* (next_keeper_to_box + next_box_to_target -1) + len(next_grid[np.where(next_grid == 5)])
+        # reward = next_value
 
-        if next_pos[0] == next_box_pos[0] and next_pos[0] == next_target_pos[0]:
-            if (next_target_pos[1] < next_box_pos[1] < next_pos[1]) or (next_target_pos[1] > next_box_pos[1] > next_pos[1]):
-                reward += 5
+        # if next_pos[0] == next_box_pos[0] and next_pos[0] == next_target_pos[0]:
+        #     if (next_target_pos[1] < next_box_pos[1] < next_pos[1]) or (next_target_pos[1] > next_box_pos[1] > next_pos[1]):
+        #         reward += 5
 
         
-        if next_pos[1] == next_box_pos[1] and next_pos[1] == next_target_pos[1]:
-            if (next_target_pos[0] < next_box_pos[0] < next_pos[0]) or (next_target_pos[0] > next_box_pos[0] > next_pos[0]):
-                reward += 5
+        # if next_pos[1] == next_box_pos[1] and next_pos[1] == next_target_pos[1]:
+        #     if (next_target_pos[0] < next_box_pos[0] < next_pos[0]) or (next_target_pos[0] > next_box_pos[0] > next_pos[0]):
+        #         reward += 5
 
-        if (grid == next_grid).all():
-            reward -= 2
+        reward = 0
+
+        if curr_keeper_to_box + curr_box_to_target < next_keeper_to_box + next_box_to_target:
+            reward -= 10
+        elif curr_keeper_to_box + curr_box_to_target > next_keeper_to_box + next_box_to_target:
+            reward += 10
+        # else:
+        #     reward -= 0.1
 
         return reward
 
