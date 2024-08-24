@@ -43,8 +43,13 @@ class Agent(nn.Module):
 
     def choose_action(self, state):
         if random.random() > self.epsilon:
-            state = torch.tensor(np.reshape(state, (self.row * self.col,)), dtype=torch.float32)
-            actions = self(state)
+            state = torch.tensor(state, dtype=torch.float32)
+            if isinstance(self.model, nn.Sequential):
+                state = state.view(1, -1)
+            else:  # CNN model
+                state = state.view(-1, 1, self.row, self.col)
+            with torch.no_grad():
+                actions = self(state)
             action = torch.argmax(actions).item()
         else:
             action = random.choice(self.action_space)
@@ -61,7 +66,16 @@ class Agent(nn.Module):
         for i, (state, action, reward, next_state, done) in enumerate(minibatch):
             state_tensor = torch.tensor(state, dtype=torch.float32)
             next_state_tensor = torch.tensor(next_state, dtype=torch.float32)
-            target = self.model(state_tensor).detach()
+
+            # # Reshape tensors based on model type
+            # if isinstance(self.model, nn.Sequential):
+            #     state_tensor = state_tensor.view(1, -1)
+            #     next_state_tensor = next_state_tensor.view(1, -1)
+            # else:  # CNN model
+            #     state_tensor = state_tensor.view(1, 1, self.row, self.col)
+            #     next_state_tensor = next_state_tensor.view(1, 1, self.row, self.col)
+
+            target = self.model(state_tensor).detach().squeeze(0)
 
             if done:
                 target[action] = reward
@@ -69,7 +83,7 @@ class Agent(nn.Module):
                 max_action = self.model(next_state_tensor).argmax().item()
                 target[action] = reward + self.gamma * self.target_model(next_state_tensor)[max_action].item()
 
-            states[i] = state_tensor
+            states[i] = state_tensor.view(-1)
             targets[i] = target
         
         self.model_optimizer.zero_grad()

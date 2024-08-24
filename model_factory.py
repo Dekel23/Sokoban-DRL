@@ -67,11 +67,23 @@ def create_CNN(row, col, output_size):
             return rows * cols * self.c1_out
 
         def forward(self, x):
-            x = x.view(-1, 1, self.rows, self.cols)
+            is_multiple_states = False
+            if x.dim() == 1:
+                x = x.view(1, 1, self.rows, self.cols)
+            elif x.dim() == 2:
+                x = x.view(-1, 1, self.rows, self.cols)
+                is_multiple_states = True 
+            elif x.dim() == 3:
+                x = x.unsqueeze(1)
 
             x = F.relu(self.conv1(x))
             x = self.pool(x)
-            x = x.view(-1, self._input_fc1)
+            
+            if is_multiple_states: 
+                x = x.view(-1, self._input_fc1)
+            else:
+                x = x.view(self._input_fc1)
+
             x = F.relu(self.fc1(x))
             x = self.fc2(x)
             return x

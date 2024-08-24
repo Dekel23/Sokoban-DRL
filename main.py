@@ -38,7 +38,7 @@ reward_hyperparameters = {
     'loop_decay': 0.75, 
     'loop_size': 5
 }
-reward_gen = DistanceMeasure(**reward_hyperparameters)
+reward_gen = SimpleAndLoop(**reward_hyperparameters)
 
 train_hyperparameters = {
     'max_episodes': 1000,
