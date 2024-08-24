@@ -1,6 +1,9 @@
+import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+
+
 def build_model(name, row, col, input_size, output_size):
     if name == "NN1":
         return create_NN1(input_size, output_size)
@@ -15,6 +18,7 @@ def build_model(name, row, col, input_size, output_size):
     else:
         raise ValueError(f"Unknown model name: {name}")
 
+
 def create_NN1(input_size, output_size):
     model = nn.Sequential(
         nn.Linear(input_size, int(input_size//2)),
@@ -23,6 +27,7 @@ def create_NN1(input_size, output_size):
     )
     optimizer = optim.RAdam(model.parameters())
     return model, optimizer
+
 
 def create_NN2(input_size, output_size):
     model = nn.Sequential(
@@ -34,6 +39,7 @@ def create_NN2(input_size, output_size):
     )
     optimizer = optim.Adam(model.parameters())
     return model, optimizer
+
 
 def create_CNN(row, col, output_size):
     class CNNModel(nn.Module):
@@ -47,15 +53,27 @@ def create_CNN(row, col, output_size):
 
             self.rows = rows
             self.cols = cols
+<<<<<<< HEAD
             self._input_fc1 = self.calc_size_fc1()
+=======
+
+            self._input_fc1 = self.calc_size_fc1(rows, cols)
+>>>>>>> fc544125b753707507936e5b207765c312afe11d
 
             self.fc1 = nn.Linear(self._input_fc1, 16)
             self.fc2 = nn.Linear(16, output_size)
 
+<<<<<<< HEAD
         def calc_size_fc1(self):
             # after conv1 and pooling
             rows = (self.rows - (self.c1_kernel-1)) // 2
             cols = (self.cols - (self.c1_kernel-1)) // 2
+=======
+        def calc_size_fc1(self, rows, cols):
+            # after conv1 and pooling
+            rows = (rows - (self.c1_kernel-1)) // 2
+            cols = (cols - (self.c1_kernel-1)) // 2
+>>>>>>> fc544125b753707507936e5b207765c312afe11d
 
             return rows * cols * self.c1_out
 
@@ -73,6 +91,7 @@ def create_CNN(row, col, output_size):
     optimizer = optim.Adam(model.parameters())
     return model, optimizer
 
+
 def create_RNN(input_size, output_size, hidden_size=64):
     class RNNModel(nn.Module):
         def __init__(self, input_size, hidden_size, output_size):
@@ -89,6 +108,7 @@ def create_RNN(input_size, output_size, hidden_size=64):
     model = RNNModel(input_size, hidden_size, output_size)
     optimizer = optim.Adam(model.parameters())
     return model, optimizer
+
 
 def create_Transformer(input_size, output_size, nhead=4, num_layers=2):
     class TransformerModel(nn.Module):

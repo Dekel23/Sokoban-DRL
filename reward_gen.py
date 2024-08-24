@@ -63,12 +63,12 @@ class Simple(RewardGenerator): # for no checking loops set loop_size to 0
             replay_buffer[i][2] = self.reward_loop * (self.loop_decay ** (i + 1))
 
 class DistanceMeasure(RewardGenerator):
-    def __init__(self):
+    def __init__(self, r_waste, r_done, r_move, r_loop, loop_decay, loop_size):
         super().__init__(loop_size=0)
 
     def calculate_reward(self, state, next_state, done, replay_buffer):
         if done:
-            return 10
+            return 0
         
         # curr_pos = np.argwhere((state == 6) | (state == 7))[0]
         # curr_keeper_to_box, curr_box_pos = self.possible_path(state, curr_pos[0], curr_pos[1], 4)        
@@ -82,14 +82,14 @@ class DistanceMeasure(RewardGenerator):
         next_value = -3* (next_keeper_to_box + next_box_to_target -1) + len(next_state[np.where(next_state == 5)])
         reward = next_value
 
-        if next_pos[0] == next_box_pos[0] and next_pos[0] == next_target_pos[0]:
-            if (next_target_pos[1] < next_box_pos[1] < next_pos[1]) or (next_target_pos[1] > next_box_pos[1] > next_pos[1]):
-                reward += 5
+        # if next_pos[0] == next_box_pos[0] and next_pos[0] == next_target_pos[0]:
+        #     if (next_target_pos[1] < next_box_pos[1] < next_pos[1]) or (next_target_pos[1] > next_box_pos[1] > next_pos[1]):
+        #         reward += 5
 
         
-        if next_pos[1] == next_box_pos[1] and next_pos[1] == next_target_pos[1]:
-            if (next_target_pos[0] < next_box_pos[0] < next_pos[0]) or (next_target_pos[0] > next_box_pos[0] > next_pos[0]):
-                reward += 5
+        # if next_pos[1] == next_box_pos[1] and next_pos[1] == next_target_pos[1]:
+        #     if (next_target_pos[0] < next_box_pos[0] < next_pos[0]) or (next_target_pos[0] > next_box_pos[0] > next_pos[0]):
+        #         reward += 5
 
         if (state == next_state).all():
             reward -= 2

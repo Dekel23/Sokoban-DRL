@@ -14,7 +14,7 @@ row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
 # init model
-model_type = "NN1"
+model_type = "CNN"
 model_parameters = {
 
 }
@@ -44,7 +44,7 @@ reward_hyperparameters = {
     'r_hot': 10,
     'r_cold': -5
 }
-reward_gen = HotCold(**reward_hyperparameters)
+reward_gen = DistanceMeasure(**reward_hyperparameters)
 
 train_hyperparameters = {
     'max_episodes': 1000,
