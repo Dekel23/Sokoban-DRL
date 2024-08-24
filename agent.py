@@ -7,7 +7,7 @@ import numpy as np
 from model_factory import *
 
 class Agent(nn.Module):
-    def __init__(self, model, optimizer, row, col, gamma, epsilon, epsilon_decay, epsilon_min, beta):
+    def __init__(self, model, optimizer, row, col, gamma, epsilon, epsilon_decay, epsilon_min, beta, batch_size, prioritized_batch_size):
         super(Agent, self).__init__()
 
         self.row = row
@@ -26,8 +26,8 @@ class Agent(nn.Module):
         self.epsilon_min = epsilon_min
         self.beta = beta
 
-        self.batch_size = 20
-        self.prioritized_batch_size = 10
+        self.batch_size = batch_size
+        self.prioritized_batch_size = prioritized_batch_size
         self.replay_buffer = deque(maxlen=15000)
         self.prioritized_replay_buffer = deque(maxlen=5000)
 
