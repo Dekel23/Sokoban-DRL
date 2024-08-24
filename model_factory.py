@@ -53,27 +53,15 @@ def create_CNN(row, col, output_size):
 
             self.rows = rows
             self.cols = cols
-<<<<<<< HEAD
             self._input_fc1 = self.calc_size_fc1()
-=======
-
-            self._input_fc1 = self.calc_size_fc1(rows, cols)
->>>>>>> fc544125b753707507936e5b207765c312afe11d
 
             self.fc1 = nn.Linear(self._input_fc1, 16)
             self.fc2 = nn.Linear(16, output_size)
 
-<<<<<<< HEAD
         def calc_size_fc1(self):
             # after conv1 and pooling
             rows = (self.rows - (self.c1_kernel-1)) // 2
             cols = (self.cols - (self.c1_kernel-1)) // 2
-=======
-        def calc_size_fc1(self, rows, cols):
-            # after conv1 and pooling
-            rows = (rows - (self.c1_kernel-1)) // 2
-            cols = (cols - (self.c1_kernel-1)) // 2
->>>>>>> fc544125b753707507936e5b207765c312afe11d
 
             return rows * cols * self.c1_out
 

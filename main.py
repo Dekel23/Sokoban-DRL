@@ -44,7 +44,7 @@ reward_hyperparameters = {
     'r_hot': 10,
     'r_cold': -5
 }
-reward_gen = DistanceMeasure(**reward_hyperparameters)
+reward_gen = HotCold(**reward_hyperparameters)
 
 train_hyperparameters = {
     'max_episodes': 1000,
