@@ -13,8 +13,8 @@ class SokobanGame:
         self.level = level
        
         self.x, self.y = 0, 0
-        self.target_x, self.target_y = 0, 0
-        self.cargo_x, self.cargo_y = 0, 0
+        # self.target_x, self.target_y = 0, 0
+        # self.cargo_x, self.cargo_y = 0, 0
 
         self.map_info = None
         self.seed = seed
@@ -31,13 +31,13 @@ class SokobanGame:
         
         return state
 
-    def set_map_info(self, state):
-        curr_state = state.reshape(len(self.map_info)-2, len(self.map_info[0])-2)
+    # def set_map_info(self, state):
+    #     curr_state = state.reshape(len(self.map_info)-2, len(self.map_info[0])-2)
 
-        self.map_info = np.ones((len(self.map_info), len(self.map_info[0])))
-        self.map_info[1:-1, 1:-1] = curr_state
+    #     self.map_info = np.ones((len(self.map_info), len(self.map_info[0])))
+    #     self.map_info[1:-1, 1:-1] = curr_state
 
-        self.search_target_and_keeper_pos()
+    #     self.search_target_and_keeper_pos()
 
     def load_map_info(self):
         if self.level < FIRST_LEVEL or self.level > LAST_LEVEL:
@@ -77,12 +77,12 @@ class SokobanGame:
                 if tile in (6, 7):  # Keeper type of tiles
                     self.x = x
                     self.y = y
-                if tile in (3, 5, 7):  # Target type of tiles
-                    self.target_x = x
-                    self.target_y = y
-                if tile in (4, 5):  # Target type of tiles
-                    self.cargo_x = x
-                    self.cargo_y = y
+                # if tile in (3, 5, 7):  # Target type of tiles
+                #     self.target_x = x
+                #     self.target_y = y
+                # if tile in (4, 5):  # Cargo type of tiles
+                #     self.cargo_x = x
+                #     self.cargo_y = y
     
     # Reset the game to the current level
     def reset_level(self):
@@ -158,8 +158,7 @@ class SokobanGame:
 
                 # Set x,y to new values
                 self.y, self.x = self.y + dist[0], self.x + dist[1]
-                self.cargo_y += dist[0]
-                self.cargo_x += dist[1]
+
                 # Change new pos to keeper
                 info_to_change.append((self.y, self.x, 6))
 
@@ -185,8 +184,7 @@ class SokobanGame:
 
                 # Set x,y to new values
                 self.y, self.x = self.y + dist[0], self.x + dist[1]
-                self.cargo_y += dist[0]
-                self.cargo_x += dist[1]
+
                 # Change new pos to keeper & target
                 info_to_change.append((self.y, self.x, 7))
 

@@ -6,6 +6,7 @@ from agent import Agent
 from model_factory import *
 from reward_gen import *
 from game import SokobanGame
+from hyperopt import hp, fmin, tpe, Trials, space_eval
 
 # init env
 env = SokobanGame(level=61, graphics_enable=False)
@@ -21,24 +22,29 @@ model, optimizer = build_model(name=model_type, row=row, col=col, input_size=row
 
 # init agent
 agent_hyperparameters = {
-    'gamma': 0.95,
+    'gamma': 0.7,
     'epsilon': 1.0,
     'epsilon_min': 0.1,
-    'epsilon_decay': 0.999,
-    'beta': 0.99,
+    'epsilon_decay': 0.9995,
+    'beta': 0.9,
+    'batch_size': 20,
+    'prioritized_batch_size': 8
 }
 agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
 
 # init reward generator
 reward_hyperparameters = {
-    'r_waste': -5,
-    'r_done': 50,
-    'r_move': -0.5,
-    'r_loop': -5, 
-    'loop_decay': 0.75, 
-    'loop_size': 5
+    # 'r_waste': -5,
+    # 'r_done': 50,
+    # 'r_move': -0.5,
+    'r_loop': -10, 
+    # 'loop_decay': 0.75, 
+    'loop_size': 5,
+    'r_done': 100,
+    'r_hot': 10,
+    'r_cold': -5
 }
-reward_gen = SimpleAndLoop(**reward_hyperparameters)
+reward_gen = HotCold(**reward_hyperparameters)
 
 train_hyperparameters = {
     'max_episodes': 1000,
@@ -75,6 +81,9 @@ for episode in range(1, train_hyperparameters['max_episodes'] + 1):
         state = np.reshape(state, (row * col,))
         next_state = np.reshape(next_state, (row * col,))
         agent.store_replay(state, action, reward, next_state, done)
+
+        if reward == reward_hyperparameters['r_hot']:
+            agent.copy_to_prioritized_replay(1)
 
         if successful_episodes >= train_hyperparameters['successes_before_train']:
             agent.replay()
