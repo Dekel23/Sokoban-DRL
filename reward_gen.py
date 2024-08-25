@@ -2,6 +2,14 @@ from collections import deque
 from abc import ABC, abstractmethod
 import numpy as np
 
+def build_gen(name, r_waste, r_done, r_move, r_loop, r_hot, r_cold, loop_decay, loop_size):
+    if name == "Simple":
+        return Simple(r_waste, r_done, r_move, r_loop, loop_decay, loop_size)
+    if name == "HotCold":
+        return HotCold(r_hot, r_cold, r_done, r_loop, loop_decay, loop_size)
+    else:
+        raise ValueError(f"Unknown generator name: {name}")
+    
 
 class RewardGenerator(ABC):
     def __init__(self, loop_size = 0):
@@ -35,32 +43,32 @@ class RewardGenerator(ABC):
             self.accumulated_reward += reward
             return reward
         return inner
+    
+    def _change_loop_rewards(self, idx, replay_buffer, reward_loop, loop_decay):
+        for i in range(idx):    
+            replay_buffer[i][2] += reward_loop * (loop_decay ** (i + 1))
 
 class Simple(RewardGenerator): # for no checking loops set loop_size to 0
     def __init__(self, r_waste, r_done, r_move, r_loop, loop_decay, loop_size=0):
         super().__init__(loop_size=loop_size)
 
-        self.reward_waste = r_waste
-        self.reward_done = r_done
-        self.reward_move = r_move
-        self.reward_loop = r_loop
+        self.r_waste = r_waste
+        self.r_done = r_done
+        self.r_move = r_move
+        self.r_loop = r_loop
         self.loop_decay = loop_decay
 
     @ RewardGenerator.calc_accumulated
     def calculate_reward(self, state, next_state, done, replay_buffer):
         if done:
-            return self.reward_done
+            return self.r_done
         if (state == next_state).all():
-            return self.reward_waste
+            return self.r_waste
         idx = self._check_loop(next_state, replay_buffer)
         if idx != -1:
-            self._change_loop_rewards(idx, replay_buffer)
-            return self.reward_loop
-        return self.reward_move
-
-    def _change_loop_rewards(self, idx, replay_buffer):
-        for i in range(idx):    
-            replay_buffer[i][2] = self.reward_loop * (self.loop_decay ** (i + 1))
+            self._change_loop_rewards(idx, replay_buffer, self.r_loop, self.loop_decay)
+            return self.r_loop
+        return self.r_move
 
 class DistanceMeasure(RewardGenerator):
     def __init__(self, r_waste, r_done, r_move, r_loop, loop_decay, loop_size):
@@ -134,13 +142,15 @@ class DistanceMeasure(RewardGenerator):
     
 
 class HotCold(RewardGenerator):
-    def __init__(self, r_hot, r_cold, r_done, r_loop, loop_size=0):
+    def __init__(self, r_hot, r_cold, r_done, r_loop, loop_decay, loop_size=0):
         super().__init__(loop_size=loop_size)
 
         self.r_hot = r_hot
         self.r_cold = r_cold
         self.r_done = r_done
         self.r_loop = r_loop
+        self.loop_decay = loop_decay
+
     
     @ RewardGenerator.calc_accumulated
     def calculate_reward(self, state, next_state, done, replay_buffer):
@@ -153,7 +163,9 @@ class HotCold(RewardGenerator):
 
         if before_val > after_val:
             return self.r_hot
-        if self._check_loop(next_state, replay_buffer) != -1:
+        idx = self._check_loop(next_state, replay_buffer)
+        if idx != -1:
+            self._change_loop_rewards(idx, replay_buffer, self.r_loop, self.loop_decay)
             return self.r_loop
         return self.r_cold
     

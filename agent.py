@@ -67,14 +67,6 @@ class Agent(nn.Module):
             state_tensor = torch.tensor(state, dtype=torch.float32)
             next_state_tensor = torch.tensor(next_state, dtype=torch.float32)
 
-            # # Reshape tensors based on model type
-            # if isinstance(self.model, nn.Sequential):
-            #     state_tensor = state_tensor.view(1, -1)
-            #     next_state_tensor = next_state_tensor.view(1, -1)
-            # else:  # CNN model
-            #     state_tensor = state_tensor.view(1, 1, self.row, self.col)
-            #     next_state_tensor = next_state_tensor.view(1, 1, self.row, self.col)
-
             target = self.model(state_tensor).detach().squeeze(0)
 
             if done:
