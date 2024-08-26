@@ -13,45 +13,37 @@ env = SokobanGame(level=61, graphics_enable=False)
 row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
-# init model
-model_type = "NN1"
-reward_type = "HotCold"
 
-model_parameters = {}
-model, optimizer = build_model(name=model_type, row=row, col=col, input_size=row*col, output_size=4, **model_parameters)
-
-# init agent
+model_hyperparameters = {
+    'name': "NN1"
+}
 agent_hyperparameters = {
-    'gamma': 0.7,
+    'gamma': 0.5,
     'epsilon': 1.0,
-    'epsilon_min': 0.25,
+    'epsilon_min': 0.15,
     'epsilon_decay': 0.9993,
     'beta': 0.9,
     'batch_size': 20,
-    'prioritized_batch_size': 10
+    'prioritized_batch_size': 7
 }
-agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
-
-# init reward generator
 reward_hyperparameters = {
-    'r_waste': -1,
+    'name': "Simple",
+    'r_waste': -2,
     'r_done': 50,
     'r_move': -0.25,
-    'r_loop': -0.5, 
+    'r_loop': -1, 
     'loop_decay': 0.75, 
     'loop_size': 5,
-    'r_hot': 10,
+    'r_hot': 5,
     'r_cold': -5
 }
-reward_gen = build_gen(name=reward_type, **reward_hyperparameters)
 
-train_hyperparameters = {
+train_parameters = {
     'max_episodes': 1000,
     'max_steps': 30,
     'successes_before_train': 10,
     'continuous_successes_goal': 20
 }
-
 def run(agent, reward_gen, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
     successful_episodes = 0
     continuous_successes = 0
@@ -106,7 +98,6 @@ def run(agent, reward_gen, max_episodes, max_steps, successes_before_train, cont
     
     return steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode
 
-
 def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode):
     # Plot the step per episode graph
     plt.subplot(311)
@@ -132,13 +123,36 @@ def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiod
     plt.tight_layout()
     plt.show()
 
+def test(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters):
+    model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters)
+    agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
+    reward_gen = build_gen(**reward_hyperparameters)
+    length = 5
 
-steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode = run(agent, reward_gen, **train_hyperparameters)
+    min_episode = 1000
+    min_steps_per_episode = []
+    min_loops_per_episode = []
+    max_accumulated_reward_per_epsiode = []
+    sum_episode = 0
 
-episodes = len(steps_per_episode)
-print(f'#episodes: {episodes}')
-print(f'avg steps: {sum(steps_per_episode)/episodes}')
-print(f'avg loops: {sum(loops_per_episode)/episodes}')
-print(f'avg reward: {sum(accumulated_reward_per_epsiode)/episodes}')
+    for _ in range(length):
+        steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode = run(agent, reward_gen, **train_parameters)
+        agent.epsilon = agent_hyperparameters['epsilon']
+        episodes = len(steps_per_episode)
+        if episodes < min_episode:
+            min_steps_per_episode = steps_per_episode.copy()
+            min_loops_per_episode = loops_per_episode.copy()
+            max_accumulated_reward_per_epsiode = accumulated_reward_per_epsiode.copy()
+        sum_episode += episodes
+    return sum_episode/length, min_steps_per_episode, min_loops_per_episode, max_accumulated_reward_per_epsiode
 
-plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode)
+def compare(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters):
+    avg_episode_loop, steps_per_episode_loop, loops_per_episode_loop, accumulated_reward_per_epsiode_loop = test(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters)
+    reward_hyperparameters['r_loop'] = 0
+    avg_episode, steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode = test(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters)
+
+    print(f'with loops: {avg_episode_loop}, without loops: {avg_episode}')
+    plot_run(steps_per_episode_loop, loops_per_episode_loop, accumulated_reward_per_epsiode_loop)
+    plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode)
+
+compare(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters)
