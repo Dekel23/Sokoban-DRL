@@ -14,12 +14,12 @@ col = len(env.map_info[0])
 
 # init agent
 agent_hyperparameters = {
-    'gamma': 0.995,
+    'gamma': 0.99,
     'epsilon': 1.0,
     'epsilon_min': 0.1,
     'epsilon_decay': 0.995,
     'input_size': (row - 2) * (col - 2),
-    'beta': 0.99
+    'beta': 0.95
 }
 
 agent = Agent(**agent_hyperparameters)
@@ -40,16 +40,14 @@ steps_per_episode = []
 loops_per_episode = []
 accumulated_reward_per_epsiode = []
 
-save_rate = 50
-
 for episode in range(1, max_episodes + 1):
     if continuous_successes >= continuous_successes_goal:
         print("Agent training finished!")
         break
 
-    if episode % save_rate == 0:
-        two_step_agent.model.load_state_dict(agent.model.state_dict())
-        two_step_agent.save_onnx_model(episode)
+    # if episode % save_rate == 0:
+    #     two_step_agent.model.load_state_dict(agent.model.state_dict())
+    #     two_step_agent.save_onnx_model(episode)
     
     print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
     env.reset_level()

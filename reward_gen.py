@@ -12,9 +12,9 @@ class RewardGen(zope.interface.Interface):
 class MoveDoneLoop:
     def __init__(self) -> None:
         self.reward_for_waste = -2
-        self.reward_for_done = 10
+        self.reward_for_done = 20
         self.reward_for_move = -0.5
-        self.reward_for_loop = -4
+        self.reward_for_loop = -0.5
         self.reward_for_loop_decay = 0.75
         self.state_queue_length = 5
         self.state_queue = deque(maxlen=self.state_queue_length)
@@ -60,7 +60,7 @@ class MoveDoneLoop:
             return
         
         for i in range(loop_length):    
-            replay_buffer[i][2] = self.reward_for_loop * (self.reward_for_loop_decay ** (i + 1))
+            replay_buffer[i][2] += self.reward_for_loop * (self.reward_for_loop_decay ** (i + 1))
 
     def reset(self):
         self.loop_counter = 0
