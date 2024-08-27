@@ -1,4 +1,5 @@
 
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -14,48 +15,83 @@ row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
 
-model_hyperparameters = {
-    'name': "NN1"
-}
-agent_hyperparameters = {
-    'gamma': 0.5,
+space = {
+    # model parameters
+    'model_name': "NN1",
+
+    # agent parameters
+    'gamma': 1 - hp.loguniform("gamma", -8, -1),
     'epsilon': 1.0,
-    'epsilon_min': 0.15,
-    'epsilon_decay': 0.9993,
-    'beta': 0.9,
-    'batch_size': 20,
-    'prioritized_batch_size': 7
-}
-reward_hyperparameters = {
-    'name': "Simple",
-    'r_waste': -2,
-    'r_done': 50,
-    'r_move': -0.25,
-    'r_loop': -1, 
+    'epsilon_min': hp.normal("epsilon_min", 0.15, 0.05),
+    'epsilon_decay': 1 - hp.loguniform("epsilon_decay", -8, -2),
+    'beta': hp.normal("beta", 0.85, 0.05),
+    'batch_size': hp.choice("batch_size", [16, 20, 24]),
+    'prioritized_batch_size': hp.randint("prioritized_batch_size", 5, 10),
+
+    # reward parameters
+    'reward_name': "Simple",
+    'r_waste': hp.uniform("r_waste", -5, -0.5),
+    'r_done': hp.uniform("r_done", 10, 100),
+    'r_move': hp.uniform("r_move", -3, 0),
+    'r_loop': 0, 
     'loop_decay': 0.75, 
     'loop_size': 5,
     'r_hot': 5,
     'r_cold': -5
 }
 
-train_parameters = {
-    'max_episodes': 1000,
+train_param = {
+    'max_episodes': 800,
     'max_steps': 30,
     'successes_before_train': 10,
     'continuous_successes_goal': 20
 }
-def run(agent, reward_gen, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
+
+def objective(param):
+    model_hyperparameters = {
+        'name': param['model_name']
+    }
+    agent_hyperparameters = {
+        'gamma': param['gamma'],
+        'epsilon': param['epsilon'],
+        'epsilon_min': param['epsilon_min'],
+        'epsilon_decay': param['epsilon_decay'],
+        'beta': param['beta'],
+        'batch_size': param['batch_size'],
+        'prioritized_batch_size': param['prioritized_batch_size']
+    }
+    reward_hyperparameters = {
+        'name': param['reward_name'],
+        'r_waste': param['r_waste'],
+        'r_done': param['r_done'],
+        'r_move': param['r_move'],
+        'r_loop': param['r_loop'], 
+        'loop_decay': param['loop_decay'], 
+        'loop_size': param['loop_size'],
+        'r_hot': param['r_hot'],
+        'r_cold': param['r_cold']
+    }
+    model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters)
+    agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
+    reward_gen = build_gen(**reward_hyperparameters)
+    episodes, moves, loops, tot_rewards = run(agent=agent, reward_gen=reward_gen, **train_param)
+    return episodes/train_param['max_episodes']
+
+def run(agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
     successful_episodes = 0
     continuous_successes = 0
     steps_per_episode = []
     loops_per_episode = []
     accumulated_reward_per_epsiode = []
+    total_episodes = 0
+    
     for episode in range(1, max_episodes + 1):
 
         if continuous_successes >= continuous_successes_goal:
-            print("Agent training finished!")
+            print(f"Agent training finished! on episode: {episode-1}")
             break
         
+        total_episodes += 1
         print(f"Episode {episode} Epsilon {agent.epsilon:.4f}")
         env.reset_level()
         reward_gen.reset()
@@ -88,7 +124,6 @@ def run(agent, reward_gen, max_episodes, max_steps, successes_before_train, cont
                 agent.copy_to_prioritized_replay(step)
                 break
         
-        #print(f'number of loops in episode {episode} is {loop_counter}')
         loops_per_episode.append(reward_gen.loop_counter)
         accumulated_reward_per_epsiode.append(reward_gen.accumulated_reward)
 
@@ -96,7 +131,10 @@ def run(agent, reward_gen, max_episodes, max_steps, successes_before_train, cont
             continuous_successes = 0
             steps_per_episode.append(max_steps)
     
-    return steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode
+    if total_episodes == max_episodes:
+        print(f"Agent training didn't finished!")
+    
+    return total_episodes, steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode
 
 def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode):
     # Plot the step per episode graph
@@ -123,36 +161,17 @@ def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiod
     plt.tight_layout()
     plt.show()
 
-def test(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters):
-    model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters)
-    agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
-    reward_gen = build_gen(**reward_hyperparameters)
-    length = 5
+trails = Trials()
+best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=2, trials=trails)
+bext_space = space_eval(space, best)
 
-    min_episode = 1000
-    min_steps_per_episode = []
-    min_loops_per_episode = []
-    max_accumulated_reward_per_epsiode = []
-    sum_episode = 0
+# Convert all numpy.int64 types to int
+for key, value in bext_space.items():
+    if isinstance(value, np.int64):
+        bext_space[key] = int(value)
 
-    for _ in range(length):
-        steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode = run(agent, reward_gen, **train_parameters)
-        agent.epsilon = agent_hyperparameters['epsilon']
-        episodes = len(steps_per_episode)
-        if episodes < min_episode:
-            min_steps_per_episode = steps_per_episode.copy()
-            min_loops_per_episode = loops_per_episode.copy()
-            max_accumulated_reward_per_epsiode = accumulated_reward_per_epsiode.copy()
-        sum_episode += episodes
-    return sum_episode/length, min_steps_per_episode, min_loops_per_episode, max_accumulated_reward_per_epsiode
+with open('best_hyperparameters.json', 'w') as f:
+    json.dump(bext_space, f)
 
-def compare(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters):
-    avg_episode_loop, steps_per_episode_loop, loops_per_episode_loop, accumulated_reward_per_epsiode_loop = test(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters)
-    reward_hyperparameters['r_loop'] = 0
-    avg_episode, steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode = test(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters)
-
-    print(f'with loops: {avg_episode_loop}, without loops: {avg_episode}')
-    plot_run(steps_per_episode_loop, loops_per_episode_loop, accumulated_reward_per_epsiode_loop)
-    plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode)
-
-compare(model_hyperparameters, agent_hyperparameters, reward_hyperparameters, train_parameters)
+print("Best hyperparameters saved to best_hyperparameters.json")
+print(bext_space)

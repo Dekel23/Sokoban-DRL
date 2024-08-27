@@ -21,9 +21,9 @@ def build_model(name, row, col, input_size, output_size):
 
 def create_NN1(input_size, output_size):
     model = nn.Sequential(
-        nn.Linear(input_size, int(input_size//2)),
+        nn.Linear(input_size, int(input_size)),
         nn.ReLU(),
-        nn.Linear(int(input_size//2), output_size)
+        nn.Linear(int(input_size), output_size)
     )
     optimizer = optim.RAdam(model.parameters())
     return model, optimizer
