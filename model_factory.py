@@ -11,10 +11,6 @@ def build_model(name, row, col, input_size, output_size):
         return create_NN2(input_size, output_size)
     elif name == "CNN":
         return create_CNN(row, col, output_size)
-    elif name == "RNN":
-        return create_RNN(input_size, output_size)
-    elif name == "Transformer":
-        return create_Transformer(input_size, output_size)
     else:
         raise ValueError(f"Unknown model name: {name}")
 
@@ -88,47 +84,5 @@ def create_CNN(row, col, output_size):
             return x
 
     model = CNNModel(1, row, col, output_size)
-    optimizer = optim.Adam(model.parameters())
-    return model, optimizer
-
-
-def create_RNN(input_size, output_size, hidden_size=64):
-    class RNNModel(nn.Module):
-        def __init__(self, input_size, hidden_size, output_size):
-            super(RNNModel, self).__init__()
-
-            self.rnn = nn.RNN(input_size, hidden_size, batch_first=True)
-            self.fc = nn.Linear(hidden_size, output_size)
-
-        def forward(self, x):
-            _, hidden = self.rnn(x)
-            output = self.fc(hidden.squeeze(0))
-            return output
-
-    model = RNNModel(input_size, hidden_size, output_size)
-    optimizer = optim.Adam(model.parameters())
-    return model, optimizer
-
-
-def create_Transformer(input_size, output_size, nhead=4, num_layers=2):
-    class TransformerModel(nn.Module):
-        def __init__(self, input_size, output_size, nhead, num_layers):
-            super(TransformerModel, self).__init__()
-
-            self.transformer = nn.Transformer(
-                d_model=input_size,
-                nhead=nhead,
-                num_encoder_layers=num_layers,
-                num_decoder_layers=num_layers,
-                dim_feedforward=128,
-                batch_first=True
-            )
-            self.fc = nn.Linear(input_size, output_size)
-
-        def forward(self, src, tgt):
-            output = self.transformer(src, tgt)
-            return self.fc(output)
-
-    model = TransformerModel(input_size, output_size, nhead, num_layers)
     optimizer = optim.Adam(model.parameters())
     return model, optimizer

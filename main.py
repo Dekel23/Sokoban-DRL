@@ -20,24 +20,24 @@ space = {
     'model_name': "NN1",
 
     # agent parameters
-    'gamma': 1 - hp.loguniform("gamma", -8, -1),
     'epsilon': 1.0,
-    'epsilon_min': hp.normal("epsilon_min", 0.15, 0.05),
-    'epsilon_decay': 1 - hp.loguniform("epsilon_decay", -8, -2),
-    'beta': hp.normal("beta", 0.85, 0.05),
-    'batch_size': hp.choice("batch_size", [16, 20, 24]),
-    'prioritized_batch_size': hp.randint("prioritized_batch_size", 5, 10),
+    'gamma': 1 - hp.loguniform("gamma", -5, -1), #0.99
+    'epsilon_min': hp.normal("epsilon_min", 0.13, 0.05), # 0.1
+    'epsilon_decay': 1 - hp.loguniform("epsilon_decay", -4, -2), # 0.995
+    'beta': hp.normal("beta", 0.9, 0.05), # 0.95
+    'batch_size': hp.choice("batch_size", [12, 16, 20, 24]), # 10
+    'prioritized_batch_size': hp.randint("prioritized_batch_size", 5, 15), # 10
 
     # reward parameters
-    'reward_name': "Simple",
-    'r_waste': hp.uniform("r_waste", -5, -0.5),
-    'r_done': hp.uniform("r_done", 10, 100),
-    'r_move': hp.uniform("r_move", -3, 0),
-    'r_loop': 0, 
-    'loop_decay': 0.75, 
+    'reward_name': "HotCold",
+    'r_waste': -2, # -2
+    'r_done': hp.uniform("r_done", 10, 50), # -20
+    'r_move': -0.5, # -0.5
+    'r_loop': 0, # -0.5
+    'loop_decay': hp.uniform("loop_decay", 0.5, 1), 
     'loop_size': 5,
-    'r_hot': 5,
-    'r_cold': -5
+    'r_hot': hp.uniform("r_hot", 0.5, 5),
+    'r_cold': hp.uniform("r_cold", -5, -0.5)
 }
 
 train_param = {
@@ -71,11 +71,14 @@ def objective(param):
         'r_hot': param['r_hot'],
         'r_cold': param['r_cold']
     }
-    model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters)
-    agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
-    reward_gen = build_gen(**reward_hyperparameters)
-    episodes, moves, loops, tot_rewards = run(agent=agent, reward_gen=reward_gen, **train_param)
-    return episodes/train_param['max_episodes']
+    tot_episodes = 0
+    for _ in range(5):
+        model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters)
+        agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
+        reward_gen = build_gen(**reward_hyperparameters)
+        episodes, _, _, _ = run(agent=agent, reward_gen=reward_gen, **train_param)
+        tot_episodes += episodes
+    return tot_episodes/(5*train_param['max_episodes'])
 
 def run(agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
     successful_episodes = 0
@@ -161,17 +164,73 @@ def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiod
     plt.tight_layout()
     plt.show()
 
-trails = Trials()
-best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=2, trials=trails)
-bext_space = space_eval(space, best)
+def find_optim(space, file_name):
+    trails = Trials()
+    best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=120, trials=trails)
+    bext_space = space_eval(space, best)
 
-# Convert all numpy.int64 types to int
-for key, value in bext_space.items():
-    if isinstance(value, np.int64):
-        bext_space[key] = int(value)
+    # Convert all numpy.int64 types to int
+    for key, value in bext_space.items():
+        if isinstance(value, np.int64):
+            bext_space[key] = int(value)
 
-with open('best_hyperparameters.json', 'w') as f:
-    json.dump(bext_space, f)
+    with open("best_hyperparameters/" + file_name + ".json", 'w') as f:
+        json.dump(bext_space, f)
 
-print("Best hyperparameters saved to best_hyperparameters.json")
-print(bext_space)
+    print(f"Best hyperparameters saved to best_hyperparameters/{file_name}.json")
+    print(bext_space)
+
+def test_optim(file_name):
+    with open("best_hyperparameters/" + file_name + ".json", 'r') as f:
+        best_param = json.load(f)
+
+    model_hyperparameters = {
+        'name': best_param['model_name']
+    }
+    agent_hyperparameters = {
+        'gamma': best_param['gamma'],
+        'epsilon': best_param['epsilon'],
+        'epsilon_min': best_param['epsilon_min'],
+        'epsilon_decay': best_param['epsilon_decay'],
+        'beta': best_param['beta'],
+        'batch_size': best_param['batch_size'],
+        'prioritized_batch_size': best_param['prioritized_batch_size']
+    }
+    reward_hyperparameters = {
+        'name': best_param['reward_name'],
+        'r_waste': best_param['r_waste'],
+        'r_done': best_param['r_done'],
+        'r_move': best_param['r_move'],
+        'r_loop': best_param['r_loop'], 
+        'loop_decay': best_param['loop_decay'], 
+        'loop_size': best_param['loop_size'],
+        'r_hot': best_param['r_hot'],
+        'r_cold': best_param['r_cold']
+    }
+
+    min_episodes = train_param['max_episodes']
+    min_steps = []
+    min_loops = []
+    min_rewards = []
+
+    for _ in range(30):
+        model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters)
+        agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
+        reward_gen = build_gen(**reward_hyperparameters)
+        episodes, steps, loops, rewards = run(agent=agent, reward_gen=reward_gen, **train_param)
+        if episodes < min_episodes:
+            min_episodes = episodes
+            min_steps = steps.copy()
+            min_loops = loops.copy()
+            min_rewards = rewards.copy()
+
+    print(min_episodes)
+    best_param["episode"] = min_episodes
+    with open("best_hyperparameters/" + file_name + ".json", 'w') as f:
+        json.dump(best_param, f)
+
+    plot_run(min_steps, min_loops, min_rewards)
+
+file_name = "NN1_HOTCOLD_no_loops"
+find_optim(space=space, file_name=file_name)
+test_optim(file_name=file_name)
