@@ -33,7 +33,7 @@ space = {
     'r_waste': hp.uniform("r_waste", -4, -0.5), # -2
     'r_done': hp.uniform("r_done", 10, 50), # -20
     'r_move': hp.uniform("r_move", -3.5, -0.5), # -0.5
-    'r_loop': 0, # -0.5
+    'r_loop': hp.uniform("r_loop", -1, 0), # -0.5
     'loop_decay': hp.uniform("loop_decay", 0.5, 1), 
     'loop_size': 5,
     'r_hot': 3,
@@ -169,7 +169,7 @@ def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiod
 
 def find_optim(space, file_name):
     trails = Trials()
-    best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=100, trials=trails)
+    best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=120, trials=trails)
     bext_space = space_eval(space, best)
 
     # Convert all numpy.int64 types to int
@@ -216,7 +216,7 @@ def test_optim(file_name):
     min_loops = []
     min_rewards = []
 
-    for _ in range(1):
+    for _ in range(30):
         model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters)
         agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters)
         reward_gen = build_gen(**reward_hyperparameters)
@@ -228,12 +228,15 @@ def test_optim(file_name):
             min_rewards = rewards.copy()
 
     print(min_episodes)
-    best_param["episode"] = min(best_param["episode"], min_episodes)
+    if "episode" in best_param:
+        best_param["episode"] = min(best_param["episode"], min_episodes)
+    else:
+        best_param["episode"] = min_episodes
     with open("best_hyperparameters/" + file_name + ".json", 'w') as f:
         json.dump(best_param, f)
 
     plot_run(min_steps, min_loops, min_rewards)
 
-file_name = "CNN_Simple_no_loops_61"
+file_name = "CNN_Simple_loops_61"
 find_optim(space=space, file_name=file_name)
 test_optim(file_name=file_name)
