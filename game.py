@@ -13,32 +13,25 @@ class SokobanGame:
         self.level = level
        
         self.x, self.y = 0, 0
-        # self.target_x, self.target_y = 0, 0
-        # self.cargo_x, self.cargo_y = 0, 0
 
         self.map_info = None
         self.seed = seed
         self.load_map_info()
+
+        # If using graphics then create the pygame window
         if self.graphics_enable:
             from map.graphics import TileMap
             self.game_map = TileMap(self.map_info)
 
-    def process_state(self):  # Take the game information and transform it into a states
+    # Take the game information and transform it into a states
+    def process_state(self):
         state = self.map_info[1:-1]  # Cut the frame
         state = [row[1:-1] for row in state]
 
         state = np.array(state, dtype=np.float32)  # transform to np.array in 1d
-        
         return state
 
-    # def set_map_info(self, state):
-    #     curr_state = state.reshape(len(self.map_info)-2, len(self.map_info[0])-2)
-
-    #     self.map_info = np.ones((len(self.map_info), len(self.map_info[0])))
-    #     self.map_info[1:-1, 1:-1] = curr_state
-
-    #     self.search_target_and_keeper_pos()
-
+    # Load map info from the level file
     def load_map_info(self):
         if self.level < FIRST_LEVEL or self.level > LAST_LEVEL:
             raise Exception('Invalid Level')
@@ -55,7 +48,7 @@ class SokobanGame:
                 self.map_info.append(row)
         
         #self.add_keeper_randomly()
-        self.search_target_and_keeper_pos()        
+        self.search_keeper_pos()        
     
     def add_keeper_randomly(self):
         if self.seed:
@@ -70,24 +63,19 @@ class SokobanGame:
                 break
 
     # Find the position of the keeper
-    def search_target_and_keeper_pos(self):
+    def search_keeper_pos(self):
         x, y = 0, 0
         for y, row in enumerate(self.map_info):
             for x, tile in enumerate(row):
                 if tile in (6, 7):  # Keeper type of tiles
                     self.x = x
                     self.y = y
-                # if tile in (3, 5, 7):  # Target type of tiles
-                #     self.target_x = x
-                #     self.target_y = y
-                # if tile in (4, 5):  # Cargo type of tiles
-                #     self.cargo_x = x
-                #     self.cargo_y = y
     
     # Reset the game to the current level
     def reset_level(self):
         self.load_map_info()
 
+        # If using graphics then load pygame window from level
         if self.graphics_enable:
             self.game_map.load_level(self.map_info, self.level)
 
@@ -112,6 +100,7 @@ class SokobanGame:
         if action == 3:  # LEFT
             self.move((0, -1))
 
+        # If using graphics then update pygame window
         if self.graphics_enable:
             self.game_map.update_ui(self.map_info)
 

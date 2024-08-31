@@ -2,6 +2,7 @@ from collections import deque
 from abc import ABC, abstractmethod
 import numpy as np
 
+# Build the reward generator based on its type and hyperparametrs
 def build_gen(name, r_waste, r_done, r_move, r_loop, r_hot, r_cold, loop_decay, loop_size):
     if name == "Simple":
         return Simple(r_waste, r_done, r_move, r_loop, loop_decay, loop_size)
@@ -15,38 +16,44 @@ class RewardGenerator(ABC):
     def __init__(self, loop_size = 0):
         super().__init__()
 
+        # count loops and accumulated reward
         self.loop_counter = 0
         self.loop_size = loop_size
         self.accumulated_reward = 0
 
+    # Abtract function that calculates the reward per step 
     @ abstractmethod
     def calculate_reward(self, *arg, **kargs):
         pass
 
+    # Reset the counters
     def reset(self):
         self.loop_counter = 0
         self.accumulated_reward = 0
 
+    # Check if the step result in a loop and return loop idx
     def _check_loop(self, state, queue):
-        for i in range(min(self.loop_size, len(queue))):
-            s = queue[i][3]
-            if (s is not None) and (np.reshape(state, (len(state) * len(state[0]),)) == s).all():
+        for i in range(min(self.loop_size, len(queue))): # For every last move 
+            s = queue[i][3] # Get the next_state
+            if (s is not None) and (np.reshape(state, (len(state) * len(state[0]),)) == s).all(): # If same as now then loop
                 self.loop_counter += 1
                 return i
         
         return -1
     
+    # Decorator to sum rewards per move
     def calc_accumulated(func):
 
         def inner(self, *args, **kwargs):
-            reward = func(self, *args, **kwargs)
-            self.accumulated_reward += reward
+            reward = func(self, *args, **kwargs) # Run function
+            self.accumulated_reward += reward # Add reward
             return reward
         return inner
     
+    # In case of loop change the rewards for all previous steps
     def _change_loop_rewards(self, idx, replay_buffer, reward_loop, loop_decay):
-        for i in range(idx):    
-            replay_buffer[i][2] += reward_loop * (loop_decay ** (i + 1))
+        for i in range(idx): # For every move until the loop
+            replay_buffer[i][2] += reward_loop * (loop_decay ** (i + 1)) # Change the reward
 
 class Simple(RewardGenerator): # for no checking loops set loop_size to 0
     def __init__(self, r_waste, r_done, r_move, r_loop, loop_decay, loop_size=0):
@@ -156,18 +163,21 @@ class HotCold(RewardGenerator):
     def calculate_reward(self, state, next_state, done, replay_buffer):
         if done:
             return self.r_done
+
+        if np.sum(state == 5) > np.sum (next_state == 5): # Its bad move if less boxes on target
+            return self.r_cold
         
         # value is the distance so the smaller the better
         before_val = self.evaluate_state(state)
         after_val = self.evaluate_state(next_state)
 
         if before_val > after_val:
-            return self.r_hot
-        idx = self._check_loop(next_state, replay_buffer)
+            return self.r_hot # Reward for good move
+        idx = self._check_loop(next_state, replay_buffer) # Check loops and reward accordingly
         if idx != -1:
             self._change_loop_rewards(idx, replay_buffer, self.r_loop, self.loop_decay)
             return self.r_loop
-        return self.r_cold
+        return self.r_cold # Else reward for bad move
     
     def evaluate_state(self, state):
         state = np.array(state)
@@ -248,3 +258,16 @@ class HotCold(RewardGenerator):
                 q.appendleft((nxt_y, nxt_x))
 
         return np.inf
+
+
+# Presentation PseudoCode
+def _check_loop(max_loop, state, queue):
+    for idx in range(max_loop):
+        s = queue[idx]["next_state"]
+        if s == state:
+            return idx
+    return -1
+
+def _update_loop(idx, queue, loop_reward, loop_decay):
+    for i in range(idx):
+        queue[i]["reward"] += loop_reward * (loop_decay ** (i+1))
