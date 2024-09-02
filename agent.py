@@ -6,6 +6,8 @@ import onnx
 import numpy as np
 from model_factory import *
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 class Agent(nn.Module):
     def __init__(self, model, optimizer, row, col, gamma, epsilon, epsilon_decay, epsilon_min, beta, batch_size, prioritized_batch_size):
         super(Agent, self).__init__()
@@ -43,7 +45,7 @@ class Agent(nn.Module):
 
     def choose_action(self, state):
         if random.random() > self.epsilon:
-            state = torch.tensor(state, dtype=torch.float32)
+            state = torch.tensor(state, dtype=torch.float32).to(device)
             if isinstance(self.model, nn.Sequential):
                 state = state.view(1, -1)
             else:  # CNN model
@@ -60,12 +62,12 @@ class Agent(nn.Module):
         minibatch = random.sample(self.replay_buffer, 1*self.batch_size // 4)
         minibatch.extend(random.sample(self.prioritized_replay_buffer, 3*self.batch_size // 4))
 
-        states = torch.zeros((self.batch_size, self.input_size), dtype=torch.float32)
-        targets = torch.zeros((self.batch_size, self.action_size), dtype=torch.float32)
+        states = torch.zeros((self.batch_size, self.input_size), dtype=torch.float32).to(device)
+        targets = torch.zeros((self.batch_size, self.action_size), dtype=torch.float32).to(device)
 
         for i, (state, action, reward, next_state, done) in enumerate(minibatch):
-            state_tensor = torch.tensor(state, dtype=torch.float32)
-            next_state_tensor = torch.tensor(next_state, dtype=torch.float32)
+            state_tensor = torch.tensor(state, dtype=torch.float32).to(device)
+            next_state_tensor = torch.tensor(next_state, dtype=torch.float32).to(device)
 
             target = self.model(state_tensor).detach().squeeze(0)
 
@@ -94,7 +96,7 @@ class Agent(nn.Module):
 
     def save_onnx_model(self, episode):
         # Use a dummy input tensor that matches the expected input size
-        dummy_input = torch.tensor([6,2,2,2,2,2,2,2,2,2,4,2,2,2,2,3], dtype=torch.float32)
+        dummy_input = torch.tensor([6,2,2,2,2,2,2,2,2,2,4,2,2,2,2,3], dtype=torch.float32).to(device)
         
         # Export the model to ONNX
         onnx_path = f"onnxs/sokoban_model_{episode}.onnx"
