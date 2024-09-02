@@ -17,7 +17,7 @@ col = len(env.map_info[0]) - 2
 # Define space for bayesian hyperparameter optimization
 space = {
     # model parameters
-    'model_name': "CNN",
+    'model_name': "NN1",
 
     # agent parameters
     'epsilon': 1.0,
@@ -29,22 +29,22 @@ space = {
     'prioritized_batch_size': hp.randint("prioritized_batch_size", 5, 15), # 10
 
     # reward parameters
-    'reward_name': "Simple",
-    'r_waste': hp.uniform("r_waste", -4, -0.5), # -2
+    'reward_name': "HotCold",
+    'r_waste': -2, # -2
+    'r_move': -0.5, # -0.5
     'r_done': hp.uniform("r_done", 10, 50), # -20
-    'r_move': hp.uniform("r_move", -3.5, -0.5), # -0.5
-    'r_loop': 0, # -0.5
-    'loop_decay': 0.75, 
-    'loop_size': 5,
-    'r_hot': 3,
-    'r_cold': -3
+    'r_loop': hp.uniform("r_loop", -1, 0), # -0.5
+    'loop_decay': hp.uniform("loop_decay", 0.5, 1), # 0.75
+    'r_hot': hp.uniform("r_hot", 0.5, 5), # 3
+    'r_cold': hp.uniform("r_cold", -5, 0.5), # -2.5
+    'loop_size': 5
 }
 
 train_param = {
-    'max_episodes': 800, # Max episodes per simulation
-    'max_steps': 30, # Max steps per episode
-    'successes_before_train': 10, # Start learning
-    'continuous_successes_goal': 20 # End goal
+    'max_episodes': 800, # Max episodes per simulation # 800
+    'max_steps': 30, # Max steps per episode # 30
+    'successes_before_train': 10, # Start learning # 10
+    'continuous_successes_goal': 20 # End goal # 20
 }
 
 # Objective function to minimize
@@ -220,7 +220,7 @@ def test_optim(file_name):
     min_loops = []
     min_rewards = []
 
-    # 
+    # Simulate 30 times
     for _ in range(30):
         model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters) # Create model
         agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters) # Create agent
@@ -234,16 +234,16 @@ def test_optim(file_name):
 
     # Update the file to contain the min episodes
     print(min_episodes)
-    if "episode" in best_param:
-        best_param["episode"] = min(best_param["episode"], min_episodes)
+    if "episode_62" in best_param:
+        best_param["episode_62"] = min(best_param["episode_62"], min_episodes)
     else:
-        best_param["episode"] = min_episodes
+        best_param["episode_62"] = min_episodes
     with open("best_hyperparameters/" + file_name + ".json", 'w') as f:
         json.dump(best_param, f)
 
     # Plot best simulation data
     plot_run(min_steps, min_loops, min_rewards)
 
-file_name = "CNN_Simple_no_loops_61"
-find_optim(space=space, file_name=file_name)
+file_name = "NN1_HotCold_loops_61"
+#find_optim(space=space, file_name=file_name)
 test_optim(file_name=file_name)

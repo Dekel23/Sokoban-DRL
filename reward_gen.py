@@ -65,6 +65,7 @@ class Simple(RewardGenerator): # for no checking loops set loop_size to 0
         self.r_loop = r_loop
         self.loop_decay = loop_decay
 
+    # Check done then waste then loops and then move
     @ RewardGenerator.calc_accumulated
     def calculate_reward(self, state, next_state, done, replay_buffer):
         if done:
@@ -158,13 +159,14 @@ class HotCold(RewardGenerator):
         self.r_loop = r_loop
         self.loop_decay = loop_decay
 
-    
+    # Check done then removed target then distance to target
     @ RewardGenerator.calc_accumulated
     def calculate_reward(self, state, next_state, done, replay_buffer):
         if done:
             return self.r_done
 
-        if np.sum(state == 5) > np.sum (next_state == 5): # Its bad move if less boxes on target
+         # Its bad move if less boxes on target
+        if np.sum(state == 5) > np.sum (next_state == 5):
             return self.r_cold
         
         # value is the distance so the smaller the better
@@ -179,14 +181,20 @@ class HotCold(RewardGenerator):
             return self.r_loop
         return self.r_cold # Else reward for bad move
     
+    # Evalute state based on distance to closes bax and target
     def evaluate_state(self, state):
+        # Copy state and change kepper to regular
         state = np.array(state)
         kepper_y, kepper_x = np.argwhere((state == 6) | (state == 7))[0]
         state[state == 7] = 3
+        state[state == 6] = 2
 
+        # Find closest box
         _, box_y, box_x = self.path_to_type(state, kepper_y, kepper_x, 4)
+        # Find closest target and distance
         box_to_target, target_y, target_x = self.path_to_type(state, box_y, box_x, 3)
 
+        # Find distance to closes box to push to target
         kepper_to_box = np.inf
         sign_y = np.sign(box_y-target_y)
         if sign_y:
@@ -195,8 +203,10 @@ class HotCold(RewardGenerator):
         if sign_x:
             kepper_to_box = min(kepper_to_box, self.path_to_pos(state, kepper_y, kepper_x, box_y, box_x+sign_x))
 
+        # Return value
         return kepper_to_box + 4*box_to_target
 
+    # BFS to find distance by cell type
     def path_to_type(self, state, start_y, start_x, end_type):
         n, m =  state.shape
         
@@ -228,6 +238,7 @@ class HotCold(RewardGenerator):
 
         return np.inf, -1, -1
     
+    # BFS to find distance by cell index
     def path_to_pos(self, state, start_y, start_x, end_y, end_x):
         n, m =  state.shape
         
@@ -251,8 +262,11 @@ class HotCold(RewardGenerator):
                     continue
                 if state[nxt_y][nxt_x] in (0, 1, 5):
                     continue
-                if state[end_y][end_x] == 3 and state[nxt_y][nxt_x] == 4:
-                    continue
+                try:
+                    if state[end_y][end_x] == 3 and state[nxt_y][nxt_x] == 4:
+                        continue
+                except:
+                    return np.inf 
 
                 dist_mat[nxt_y][nxt_x] = dist_mat[cur_y][cur_x] + 1
                 q.appendleft((nxt_y, nxt_x))
