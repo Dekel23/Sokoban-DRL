@@ -17,7 +17,7 @@ col = len(env.map_info[0]) - 2
 # Define space for bayesian hyperparameter optimization
 space = {
     # model parameters
-    'model_name': "NN1",
+    'model_name': "CNN",
 
     # agent parameters
     'epsilon': 1.0,
@@ -33,8 +33,8 @@ space = {
     'r_waste': -2, # -2
     'r_move': -0.5, # -0.5
     'r_done': hp.uniform("r_done", 10, 50), # -20
-    'r_loop': hp.uniform("r_loop", -1, 0), # -0.5
-    'loop_decay': hp.uniform("loop_decay", 0.5, 1), # 0.75
+    'r_loop': 0, # -0.5
+    'loop_decay': 0.75, # 0.75
     'r_hot': hp.uniform("r_hot", 0.5, 5), # 3
     'r_cold': hp.uniform("r_cold", -5, 0.5), # -2.5
     'loop_size': 5
@@ -74,7 +74,7 @@ def objective(param):
         'r_cold': param['r_cold']
     }
     tot_episodes = 0
-    for _ in range(5): # Simulate 5 times
+    for _ in range(4): # Simulate 5 times
         model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters) # Create model
         agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters) # Create agent
         reward_gen = build_gen(**reward_hyperparameters) # Create reward system
@@ -244,6 +244,6 @@ def test_optim(file_name):
     # Plot best simulation data
     plot_run(min_steps, min_loops, min_rewards)
 
-file_name = "NN1_HotCold_loops_61"
-#find_optim(space=space, file_name=file_name)
+file_name = "CNN_HotCold_no_loops_61"
+find_optim(space=space, file_name=file_name)
 test_optim(file_name=file_name)
