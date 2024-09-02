@@ -4,8 +4,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # Build the NN model based on its type and hyperparametrs
 def build_model(name, row, col, input_size, output_size):
     if name == "NN1":
@@ -21,7 +19,7 @@ def create_NN1(input_size, output_size):
         nn.Linear(input_size, int(input_size)),
         nn.ReLU(),
         nn.Linear(int(input_size), output_size)
-    ).to(device)
+    )
     optimizer = optim.RAdam(model.parameters())
     return model, optimizer
 
@@ -70,6 +68,6 @@ def create_CNN(row, col, output_size):
             x = self.fc2(x)
             return x
 
-    model = CNNModel(1, row, col, output_size).to(device)
+    model = CNNModel(1, row, col, output_size)
     optimizer = optim.Adam(model.parameters())
     return model, optimizer

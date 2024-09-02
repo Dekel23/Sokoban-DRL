@@ -6,8 +6,6 @@ import onnx
 import numpy as np
 from model_factory import *
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 class Agent(nn.Module):
     def __init__(self, model, optimizer, row, col, gamma, epsilon, epsilon_decay, epsilon_min, beta, batch_size, prioritized_batch_size):
         super(Agent, self).__init__()
@@ -49,7 +47,7 @@ class Agent(nn.Module):
     # Agent choose action based on current state
     def choose_action(self, state):
         if random.random() > self.epsilon: # Exploitation
-            state = torch.tensor(state, dtype=torch.float32).to(device)
+            state = torch.tensor(state, dtype=torch.float32)
             if isinstance(self.model, nn.Sequential):
                 state = state.view(1, -1)
             else:  # CNN model
@@ -69,13 +67,13 @@ class Agent(nn.Module):
         minibatch.extend(random.sample(self.prioritized_replay_buffer, 3*self.batch_size // 4))
 
         # Create input output tensors batch
-        states = torch.zeros((self.batch_size, self.input_size), dtype=torch.float32).to(device)
-        targets = torch.zeros((self.batch_size, self.action_size), dtype=torch.float32).to(device)
+        states = torch.zeros((self.batch_size, self.input_size), dtype=torch.float32)
+        targets = torch.zeros((self.batch_size, self.action_size), dtype=torch.float32)
 
         # Enumerate batch
         for i, (state, action, reward, next_state, done) in enumerate(minibatch):
-            state_tensor = torch.tensor(state, dtype=torch.float32).to(device) # Copy state to tensor
-            next_state_tensor = torch.tensor(next_state, dtype=torch.float32).to(device) # Copy next_state to tensor
+            state_tensor = torch.tensor(state, dtype=torch.float32) # Copy state to tensor
+            next_state_tensor = torch.tensor(next_state, dtype=torch.float32) # Copy next_state to tensor
 
             target = self.model(state_tensor).detach().squeeze(0) # Calulate model output (Q value)
 
@@ -105,12 +103,12 @@ class Agent(nn.Module):
     # Update target model closer to main model
     def update_target_model(self):
         for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
-            target_param.data.copy_(self.beta * target_param.data + (1 - self.beta) * param.data)
+            target_param.data.mul_(self.beta).add_((1 - self.beta) * param.data)
 
     # Save Agent model to onnx format file
     def save_onnx_model(self, episode):
         # Use a dummy input tensor that matches the expected input size
-        dummy_input = torch.tensor([6,2,2,2,2,2,2,2,2,2,4,2,2,2,2,3], dtype=torch.float32).to(device)
+        dummy_input = torch.tensor([6,2,2,2,2,2,2,2,2,2,4,2,2,2,2,3], dtype=torch.float32)
         
         # Export the model to ONNX
         onnx_path = f"onnxs/sokoban_model_{episode}.onnx"
