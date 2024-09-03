@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.9.3)  3 SEP 2024 19:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.9.3)  3 SEP 2024 19:09
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -344,7 +344,7 @@ Package rerunfilecheck Warning: File `project_book.out' has changed.
 
 Package rerunfilecheck Info: Checksums for `project_book.out':
 (rerunfilecheck)             Before: D41D8CD98F00B204E9800998ECF8427E;0
-(rerunfilecheck)             After:  1C69C441C797FE68BE321BEE080F48CF;162.
+(rerunfilecheck)             After:  BDEA3526E81136D3DF7A3AEBE72272CB;230.
  ) 
 Here is how much of TeX's memory you used:
  8672 strings out of 473899
@@ -362,9 +362,9 @@ pen/ec/dpi600\ecti1440.pk> <C:\Users\ereld\AppData\Local\MiKTeX\fonts/pk/ljfour
 /jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\ereld\AppData\Local\MiKTeX\fonts/pk/
 ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\ereld\AppData\Local\MiKTeX\fon
 ts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk>
-Output written on project_book.pdf (4 pages, 65839 bytes).
+Output written on project_book.pdf (4 pages, 66917 bytes).
 PDF statistics:
- 213 PDF objects out of 1000 (max. 8388607)
+ 216 PDF objects out of 1000 (max. 8388607)
  8 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
