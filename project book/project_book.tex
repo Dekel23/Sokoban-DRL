@@ -1,0 +1,77 @@
+\documentclass[12pt,a4paper]{report}
+
+% Basic packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{titlesec}   % For customizing chapter titles
+\usepackage{hyperref}   % For hyperlinks in the table of contents
+
+% Custom commands for title page information
+\newcommand{\projectname}{Using Formal Verification tools for Reinforcement Learning}
+\newcommand{\firstauthor}{Boaz Gurevich}
+\newcommand{\secondauthor}{Erel Dekel}
+\newcommand{\firstsupervisor}{Hillel Kogler}
+\newcommand{\secondsupervisor}{Avraham Raviv}
+\newcommand{\submissiondate}{Thursday, October 10th 2024}
+
+% Redefine the title page
+\renewcommand{\maketitle}{
+    \begin{titlepage}
+        \centering
+        \vspace*{2cm}
+        
+        {\huge\bfseries\projectname\par}
+        \vspace{1.5cm}
+        
+        {\large\textbf{Authors:}\par}
+        \vspace{0.5cm}
+        {\large\firstauthor\hspace{0.3cm}\textit{\&}\hspace{0.3cm}\secondauthor\par}
+        
+        \vspace{2cm}
+        
+        {\large\textbf{Supervisors:}\par}
+        \vspace{0.5cm}
+        {\large\firstsupervisor\hspace{0.3cm}\textit{\&}\hspace{0.3cm}\secondsupervisor\par}
+        
+        \vspace{2cm}
+
+        {\large\textbf{Date:}\par}
+        \vspace{0.5cm}
+        {\large\submissiondate\par}
+    \end{titlepage}
+}
+
+% Customizing the chapter title format to remove "Chapter X"
+\titleformat{\chapter}[hang]{\LARGE\bfseries}{\thechapter.}{1em}{}
+
+% Adjust line spacing
+\linespread{1.5}
+
+\begin{document}
+
+% Enable hyperlinks in the table of contents
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    linktoc=all
+}
+
+% Generate the title page
+\maketitle
+
+\chapter*{Abstract}
+Reinforcement Learning (RL) has emerged as a cornerstone of modern technology, driving advancements in areas such as autonomous systems, robotics, and adaptive control.\\
+However, a critical challenge in deploying RL algorithms lies in their tendency to suffer from convergence issues, particularly in complex, high-dimensional environments where instability can lead to suboptimal or unsafe policies.\\
+This project aims to explore the impact of formal verification techniques on RL, specifically focusing on how these methods can address the convergence challenges that plague RL systems.\\
+We will empirically investigate this by applying formal verification to a model-free RL algorithm designed to solve the Sokoban puzzle game, a notoriously difficult problem requiring complex planning and decision-making.\\
+
+\tableofcontents
+
+\chapter{Background}
+In this chapter, we introduce the fundamental concepts that critical for the reader to understand.
+We will provide deep understanding of Neural Networks (NN), Reinforcement Learning (RL), Deep Q-Learning (DQL), and Fomal Verification.
+\subsection{NN}
+kbvmfkmfv
+\end{document}

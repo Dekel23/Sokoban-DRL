@@ -10,14 +10,14 @@ from game import SokobanGame
 from hyperopt import hp, fmin, tpe, Trials, space_eval
 
 # Init environment
-env = SokobanGame(level=61, graphics_enable=False)
+env = SokobanGame(level=62, graphics_enable=False, random=True)
 row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
 # Define space for bayesian hyperparameter optimization
 space = {
     # model parameters
-    'model_name': "CNN",
+    'model_name': "NN1",
 
     # agent parameters
     'epsilon': 1.0,
@@ -30,19 +30,19 @@ space = {
 
     # reward parameters
     'reward_name': "HotCold",
-    'r_waste': hp.uniform("r_waste", -4, -0.5), # -2
-    'r_move': hp.uniform("r_move", -3.5, -0.5), # -0.5
+    'r_waste': 0, # -2
+    'r_move': 0, # -0.5
     'r_done': hp.uniform("r_done", 10, 50), # -20
     'r_loop': hp.uniform("r_loop", -1, 0), # -0.5
     'loop_decay': hp.uniform("loop_decay", 0.5, 1), # 0.75
-    'r_hot': 0, # 3
-    'r_cold': 0, # -2.5
+    'r_hot': hp.uniform("r_hot", 0.5, 5), # 3
+    'r_cold': hp.uniform("r_cold", -5, -0.5), # -2.5
     'loop_size': 5
 }
 
 train_param = {
-    'max_episodes': 800, # Max episodes per simulation # 800
-    'max_steps': 30, # Max steps per episode # 30
+    'max_episodes': 1300, # Max episodes per simulation # 800
+    'max_steps': 40, # Max steps per episode # 30
     'successes_before_train': 10, # Start learning # 10
     'continuous_successes_goal': 20 # End goal # 20
 }
@@ -74,13 +74,14 @@ def objective(param):
         'r_cold': param['r_cold']
     }
     tot_episodes = 0
-    for _ in range(5): # Simulate 5 times
+    siml = 4
+    for _ in range(siml): # Simulate 5 times
         model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters) # Create model
         agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters) # Create agent
         reward_gen = build_gen(**reward_hyperparameters) # Create reward system
         episodes, _, _, _ = run(agent=agent, reward_gen=reward_gen, **train_param)
         tot_episodes += episodes # Calculate total episodes
-    return tot_episodes/(5*train_param['max_episodes']) # Return loos value
+    return tot_episodes/(siml*train_param['max_episodes']) # Return loos value
 
 def run(agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
     successful_episodes = 0
@@ -169,7 +170,7 @@ def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiod
 
 def find_optim(space, file_name):
     trails = Trials() # Find best hyperparameters
-    best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=120, trials=trails)
+    best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=60, trials=trails)
     bext_space = space_eval(space, best)
 
     # Convert all numpy.int64 types to int
@@ -234,16 +235,16 @@ def test_optim(file_name):
 
     # Update the file to contain the min episodes
     print(min_episodes)
-    if "episode_61" in best_param:
-        best_param["episode_61"] = min(best_param["episode_61"], min_episodes)
+    if "episode_62" in best_param:
+        best_param["episode_62"] = min(best_param["episode_62"], min_episodes)
     else:
-        best_param["episode_61"] = min_episodes
+        best_param["episode_62"] = min_episodes
     with open("best_hyperparameters/" + file_name + ".json", 'w') as f:
         json.dump(best_param, f)
 
     # Plot best simulation data
     plot_run(min_steps, min_loops, min_rewards)
 
-file_name = "CNN_HotCold_loops_61"
+file_name = "NN1_HotCold_loops_62"
 find_optim(space=space, file_name=file_name)
 test_optim(file_name=file_name)

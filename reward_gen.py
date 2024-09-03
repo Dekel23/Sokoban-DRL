@@ -75,7 +75,6 @@ class Simple(RewardGenerator): # for no checking loops set loop_size to 0
         idx = self._check_loop(next_state, replay_buffer)
         if idx != -1:
             self._change_loop_rewards(idx, replay_buffer, self.r_loop, self.loop_decay)
-            return self.r_loop
         return self.r_move
 
 class DistanceMeasure(RewardGenerator):
@@ -178,7 +177,6 @@ class HotCold(RewardGenerator):
         idx = self._check_loop(next_state, replay_buffer) # Check loops and reward accordingly
         if idx != -1:
             self._change_loop_rewards(idx, replay_buffer, self.r_loop, self.loop_decay)
-            return self.r_loop
         return self.r_cold # Else reward for bad move
     
     # Evalute state based on distance to closes bax and target

@@ -8,10 +8,10 @@ FIRST_LEVEL = 1
 LAST_LEVEL = 62
 
 class SokobanGame:
-    def __init__(self, level, graphics_enable=False, seed=0):
+    def __init__(self, level, graphics_enable=False, random=False, seed=0):
         self.graphics_enable = graphics_enable
         self.level = level
-       
+        self.ramdom = random
         self.x, self.y = 0, 0
 
         self.map_info = None
@@ -47,20 +47,28 @@ class SokobanGame:
                 row = [int(item) for item in list(row)]
                 self.map_info.append(row)
         
-        #self.add_keeper_randomly()
-        self.search_keeper_pos()        
+        self.search_keeper_pos()
+        if self.ramdom:
+            self.add_keeper_randomly()    
     
+    # Change keeper position to random
     def add_keeper_randomly(self):
-        if self.seed:
+        if self.seed: # Change seed
             random.seed(self.seed)
         
         while True:
-            rand_x = random.randint(1, len(self.map_info[0]) - 2)
+            rand_x = random.randint(1, len(self.map_info[0]) - 2) # Random new pos
             rand_y = random.randint(1, len(self.map_info) - 2)
 
             if self.map_info[rand_y][rand_x] in (2, 3): # Possible place for keeper
-                self.map_info[rand_y][rand_x] = 6 # Put keeper
+                self.map_info[rand_y][rand_x] += 4 # Put keeper acorrdingly
+                self.map_info[self.y][self.x] -= 4
                 break
+
+            if self.map_info[rand_y][rand_x] in (6,7): # If already kepper
+                break
+        self.y = rand_y
+        self.x = rand_x
 
     # Find the position of the keeper
     def search_keeper_pos(self):
