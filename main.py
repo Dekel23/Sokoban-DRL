@@ -9,7 +9,7 @@ from model_factory import *
 from game import SokobanGame
 from hyperopt import hp, fmin, tpe, Trials, space_eval
 
-env = SokobanGame(level=62, graphics_enable=False, random=False)
+env = SokobanGame(level=63, graphics_enable=False, random=False)
 row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
@@ -40,8 +40,8 @@ space = {
 }
 
 train_param = {
-    'max_episodes': 1000, # Max episodes per simulation # 800
-    'max_steps': 40, # Max steps per episode # 30
+    'max_episodes': 1500, # Max episodes per simulation # 800
+    'max_steps': 35, # Max steps per episode # 30
     'successes_before_train': 10, # Start learning # 10
     'continuous_successes_goal': 20 # End goal # 20
 }
