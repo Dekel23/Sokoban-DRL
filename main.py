@@ -10,7 +10,7 @@ from game import SokobanGame
 from hyperopt import hp, fmin, tpe, Trials, space_eval
 
 # Init environment
-env = SokobanGame(level=62, graphics_enable=False, random=True)
+env = SokobanGame(level=62, graphics_enable=False, random=False)
 row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
@@ -33,8 +33,8 @@ space = {
     'r_waste': 0, # -2
     'r_move': 0, # -0.5
     'r_done': hp.uniform("r_done", 10, 50), # -20
-    'r_loop': hp.uniform("r_loop", -1, 0), # -0.5
-    'loop_decay': hp.uniform("loop_decay", 0.5, 1), # 0.75
+    'r_loop': 0, # -0.5
+    'loop_decay': 0.75, # 0.75
     'r_hot': hp.uniform("r_hot", 0.5, 5), # 3
     'r_cold': hp.uniform("r_cold", -5, -0.5), # -2.5
     'loop_size': 5
@@ -245,6 +245,6 @@ def test_optim(file_name):
     # Plot best simulation data
     plot_run(min_steps, min_loops, min_rewards)
 
-file_name = "NN1_HotCold_loops_62"
+file_name = "NN1_HOTCOLD_no_loops_62"
 find_optim(space=space, file_name=file_name)
 test_optim(file_name=file_name)

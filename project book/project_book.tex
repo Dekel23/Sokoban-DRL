@@ -6,9 +6,18 @@
 \usepackage{geometry}
 \usepackage{titlesec}   % For customizing chapter titles
 \usepackage{hyperref}   % For hyperlinks in the table of contents
+\usepackage{newtxtext,newtxmath}  % Times New Roman font for text and math
+
+\geometry{
+    a4paper,
+    left=3cm,
+    right=3cm,
+    top=1cm,
+    bottom=3cm,
+}
 
 % Custom commands for title page information
-\newcommand{\projectname}{Using Formal Verification tools for Reinforcement Learning}
+\newcommand{\projectname}{Formal Verification Methods for Solving Spatial Games}
 \newcommand{\firstauthor}{Boaz Gurevich}
 \newcommand{\secondauthor}{Erel Dekel}
 \newcommand{\firstsupervisor}{Hillel Kogler}
@@ -45,6 +54,22 @@
 % Customizing the chapter title format to remove "Chapter X"
 \titleformat{\chapter}[hang]{\LARGE\bfseries}{\thechapter.}{1em}{}
 
+% Redefine the \section size
+\titleformat{\section}
+    {\normalfont\large\bfseries} % This sets \section titles to \large
+    {\thesection}{1em}{}
+
+% Redefine the \subsection size and numbering
+\titleformat{\subsection}
+    {\normalfont\normalsize\bfseries} % This sets \subsection titles to \normalsize
+    {\thesubsection}{1em}{}
+
+% Redefine the \subsubsection size and numbering (optional)
+\titleformat{\subsubsection}
+    {\normalfont\normalsize\bfseries} % This sets \subsubsection titles to \normalsize
+    {\thesubsubsection}{1em}{}
+
+
 % Adjust line spacing
 \linespread{1.5}
 
@@ -52,7 +77,6 @@
 
 % Enable hyperlinks in the table of contents
 \hypersetup{
-    colorlinks=true,
     linkcolor=blue,
     urlcolor=blue,
     linktoc=all
@@ -72,6 +96,38 @@ We will empirically investigate this by applying formal verification to a model-
 \chapter{Background}
 In this chapter, we introduce the fundamental concepts that critical for the reader to understand.
 We will provide deep understanding of Neural Networks (NN), Reinforcement Learning (RL), Deep Q-Learning (DQL), and Fomal Verification.
-\subsection{Neural Networks}
-kbvmfkmfv
+\section{Neural Networks}
+TBA
+\section{Reinforcement Learning}
+Reinforcement Learning is a type of machine learning where an agent learns to make decision (actions) based on interactions with the environment.\\
+Unlike supervised and unsupervised learning, reinforcement learning doesn't learn through given training dataset but through the feedback that agent get when interacting with the environment which come in the form of rewards. Therefore, reinforcement learning ofter considered as separate paradigm of machine learning that focuses on decision-making and sequential actions in an environment.
+\subsection{Key Componants of Reinforcement Learning}
+\begin{itemize}
+    \item \textbf{Agent:} Interacts with the environment and decides which action to take in each state.
+    \item \textbf{Environment:} Responds to the agent's actions and provide the new states.
+    \item \textbf{State $s{\in}S$:} The current situation of the environment. The state space, $S$, is the set of all possible states.
+    \item \textbf{Action $a{\in}A$:} The decision the agent made in a given state. The action space, $A$, is the set of all possible actions the agent can take, potentially depending on the current state.
+    \item \textbf{Policy $\pi(a|s)$:} A mapping from states to probabilities of selecting each possible action. A policy can be deterministic ($\pi(s)=a$) or stochastic ($\pi(a|s)$ gives a probability distribution over actions).
+    \item \textbf{Reward $R(s,a)$:} The immidiate reutrn value after preforming action $a$ in state $s$. A function the maps pairs of action and state to a real scalar $R:S\times A\rightarrow \mathbb{R}$.
+    \item \textbf{Value Function $V^{\pi}(s)$:} Function that estimates the cumulative reward (future reward) starting from state $s$ and following policy $\pi$.
+    \item \textbf{Q-Function $Q^{\pi}(s,a)$:} Also know as Action-Value Function. Function that estimates the cumulative reward starting from state $s$, taking action $a$, and following policy $\pi$.
+\end{itemize}
+\subsection{Type of Reinforcement Learning}
+There are 2 primary types of reinforcement learning approaches:
+\begin{enumerate}
+    \item[] \textbf{Model-Free:} In this approach, the agent does not have a model of the environment but learn only from interactions with the environment.\\
+    There are 2 main methods of making a model-free RL:
+    \begin{itemize}
+        \item \textbf{Value Based:} The agent learns a value function which estimates the value of the expected reward in a given state and/or taking an action.
+        \item \textbf{Policy Based:} The agent learn a policy that maps states to actions without learning a value function. 
+    \end{itemize}
+    \item[] \textbf{Model-Based:} In this approach, the agent builds a model that mimics the environment and tries to predict the next state given the current state and action. Model-Based are more data efficient but more complex to build.
+\end{enumerate}
+\subsection{The Reinforcement Learning Problem}
+On each step $t$, the agent observe a state $s_t\in S$ in the environment, selects an action $a_t\in A(s_t)$ according to its policy $\pi$ an recives a reward $r_{t+1}$, and the environment transition to a new state $s_{t+1}$. The environment dont have to be deterministic which mean the next state can be difined by the probability function $P(s_{t+1}|s_t,a_t)$.\\
+The goal of the agent is to maximaze the future reward, also known as return. At time $t$ looking forward T steps in the future, and considering a discout factor $\gamma{\in}[0,1)$ (to ensure convergence as $T{\rightarrow}\infty$) one can represent the return as: $$G_t = r_{t+1} + {\gamma}r_{t+2}+\dots+{\gamma}^{T-1}r_{t+T}=\sum_{k=0}^{T-1}\gamma^{k}r_{t+k+1}$$
+\section{Deep Q-Learning}
+TBA
+\section{Formal Verification}
+TBA
 \end{document}
