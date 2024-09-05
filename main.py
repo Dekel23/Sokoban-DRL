@@ -10,14 +10,14 @@ from game import SokobanGame
 from hyperopt import hp, fmin, tpe, Trials, space_eval
 
 # Init environment
-env = SokobanGame(level=62, graphics_enable=False, random=True)
+env = SokobanGame(level=61, graphics_enable=False, random=False)
 row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
 # Define space for bayesian hyperparameter optimization
 space = {
     # model parameters
-    'model_name': "NN1",
+    'model_name': "CNN",
 
     # agent parameters
     'epsilon': 1.0,
@@ -41,8 +41,8 @@ space = {
 }
 
 train_param = {
-    'max_episodes': 1300, # Max episodes per simulation # 800
-    'max_steps': 40, # Max steps per episode # 30
+    'max_episodes': 800, # Max episodes per simulation # 800
+    'max_steps': 30, # Max steps per episode # 30
     'successes_before_train': 10, # Start learning # 10
     'continuous_successes_goal': 20 # End goal # 20
 }
@@ -170,7 +170,7 @@ def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiod
 
 def find_optim(space, file_name):
     trails = Trials() # Find best hyperparameters
-    best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=60, trials=trails)
+    best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=100, trials=trails)
     bext_space = space_eval(space, best)
 
     # Convert all numpy.int64 types to int
@@ -235,16 +235,16 @@ def test_optim(file_name):
 
     # Update the file to contain the min episodes
     print(min_episodes)
-    if "episode_62" in best_param:
-        best_param["episode_62"] = min(best_param["episode_62"], min_episodes)
+    if "episode_61" in best_param:
+        best_param["episode_61"] = min(best_param["episode_61"], min_episodes)
     else:
-        best_param["episode_62"] = min_episodes
+        best_param["episode_61"] = min_episodes
     with open("best_hyperparameters/" + file_name + ".json", 'w') as f:
         json.dump(best_param, f)
 
     # Plot best simulation data
     plot_run(min_steps, min_loops, min_rewards)
 
-file_name = "NN1_HotCold_loops_62"
+file_name = "CNN_HotCold_loops_61"
 find_optim(space=space, file_name=file_name)
 test_optim(file_name=file_name)
