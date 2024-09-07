@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.9.4)  5 SEP 2024 00:09
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.9.4)  6 SEP 2024 21:41
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -503,62 +503,62 @@ LaTeX Info: Redefining \Bbbk on input line 2847.
 LaTeX Info: Redefining \not on input line 2995.
 )
 LaTeX Font Info:    Trying to load font information for T1+ntxtlf on input line
- 76.
+ 77.
  (C:\Users\ereld\AppData\Local\Programs\MiKTeX\tex/latex/newtx\t1ntxtlf.fd
 File: t1ntxtlf.fd 2021/05/24 v1.1 font definition file for T1/ntx/tlf
 )
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
-(Font)              scaled to size 12.0pt on input line 76.
+(Font)              scaled to size 12.0pt on input line 77.
 
 (project_book.aux)
 \openout1 = `project_book.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/ntxmi/m/it on input line 76.
+LaTeX Font Info:    Checking defaults for OML/ntxmi/m/it on input line 77.
 LaTeX Font Info:    Trying to load font information for OML+ntxmi on input line
- 76.
+ 77.
 
 (C:\Users\ereld\AppData\Local\Programs\MiKTeX\tex/latex/newtx\omlntxmi.fd
 File: omlntxmi.fd 2015/08/25 Fontinst v1.933 font definitions for OML/ntxmi.
 )
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for U/ntxexa/m/n on input line 76.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 77.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 77.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 77.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 77.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 77.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for U/ntxexa/m/n on input line 77.
 LaTeX Font Info:    Trying to load font information for U+ntxexa on input line 
-76.
+77.
 
 (C:\Users\ereld\AppData\Local\Programs\MiKTeX\tex/latex/newtx\untxexa.fd
 File: untxexa.fd 2012/04/16 Fontinst v1.933 font definitions for U/ntxexa.
 )
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for LMS/ntxsy/m/n on input line 76.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 77.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 77.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for LMS/ntxsy/m/n on input line 77.
 LaTeX Font Info:    Trying to load font information for LMS+ntxsy on input line
- 76.
+ 77.
 
 (C:\Users\ereld\AppData\Local\Programs\MiKTeX\tex/latex/newtx\lmsntxsy.fd
 File: lmsntxsy.fd 2016/07/02 Fontinst v1.933 font definitions for LMS/ntxsy.
 )
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for LMX/ntxexx/m/n on input line 76.
+LaTeX Font Info:    ... okay on input line 77.
+LaTeX Font Info:    Checking defaults for LMX/ntxexx/m/n on input line 77.
 LaTeX Font Info:    Trying to load font information for LMX+ntxexx on input lin
-e 76.
+e 77.
 
 (C:\Users\ereld\AppData\Local\Programs\MiKTeX\tex/latex/newtx\lmxntxexx.fd
 File: lmxntxexx.fd 2016/07/03 Fontinst v1.933 font definitions for LMX/ntxexx.
 )
-LaTeX Font Info:    ... okay on input line 76.
+LaTeX Font Info:    ... okay on input line 77.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -594,7 +594,7 @@ LaTeX Font Info:    ... okay on input line 76.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring OFF on input line 76.
+Package hyperref Info: Link coloring OFF on input line 77.
 (project_book.out) (project_book.out)
 \@outlinefile=\write3
 \openout3 = `project_book.out'.
@@ -617,18 +617,18 @@ ii
 )
 \c@mv@tabular=\count311
 \c@mv@boldtabular=\count312
-LaTeX Info: Command `\dddot' is already robust on input line 76.
-LaTeX Info: Command `\ddddot' is already robust on input line 76.
+LaTeX Info: Command `\dddot' is already robust on input line 77.
+LaTeX Info: Command `\ddddot' is already robust on input line 77.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
-(Font)              scaled to size 24.88pt on input line 86.
+(Font)              scaled to size 24.88pt on input line 87.
 LaTeX Font Info:    Font shape `T1/ntxtlf/b/n' will be
-(Font)              scaled to size 24.88pt on input line 86.
+(Font)              scaled to size 24.88pt on input line 87.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
-(Font)              scaled to size 14.4pt on input line 86.
+(Font)              scaled to size 14.4pt on input line 87.
 LaTeX Font Info:    Font shape `T1/ntxtlf/b/n' will be
-(Font)              scaled to size 14.4pt on input line 86.
+(Font)              scaled to size 14.4pt on input line 87.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/it' will be
-(Font)              scaled to size 14.4pt on input line 86.
+(Font)              scaled to size 14.4pt on input line 87.
 
 
 [1
@@ -636,11 +636,11 @@ LaTeX Font Info:    Font shape `T1/ntxtlf/m/it' will be
 {C:/Users/ereld/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/erel
 d/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newtx/ntx-ec-tlf.enc}]
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
-(Font)              scaled to size 20.74pt on input line 88.
+(Font)              scaled to size 20.74pt on input line 89.
 LaTeX Font Info:    Font shape `T1/ntxtlf/b/n' will be
-(Font)              scaled to size 20.74pt on input line 88.
+(Font)              scaled to size 20.74pt on input line 89.
 
-Underfull \hbox (badness 10000) in paragraph at lines 89--93
+Underfull \hbox (badness 10000) in paragraph at lines 90--94
 
  []
 
@@ -651,7 +651,7 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.94 \tableofcontents
+l.95 \tableofcontents
                       [1
 
 ] (project_book.toc
@@ -739,46 +739,49 @@ LaTeX Font Info:    Font shape `U/ntxexa/m/n' will be
 
 ]
 Chapter 1.
-LaTeX Font Info:    Trying to load font information for TS1+ntxtlf on input lin
-e 106.
-(C:\Users\ereld\AppData\Local\Programs\MiKTeX\tex/latex/newtx\ts1ntxtlf.fd
-File: ts1ntxtlf.fd 2015/01/18 v1.0 fd file for TS1/ntxtlf
-)
-LaTeX Font Info:    Font shape `TS1/ntxtlf/m/n' will be
-(Font)              scaled to size 12.0pt on input line 106.
 
 
 [3
 
-{C:/Users/ereld/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/tex-gyre/q-ts1.en
-c}]
+]
+LaTeX Font Info:    Trying to load font information for TS1+ntxtlf on input lin
+e 120.
+ (C:\Users\ereld\AppData\Local\Programs\MiKTeX\tex/latex/newtx\ts1ntxtlf.fd
+File: ts1ntxtlf.fd 2015/01/18 v1.0 fd file for TS1/ntxtlf
+)
+LaTeX Font Info:    Font shape `TS1/ntxtlf/m/n' will be
+(Font)              scaled to size 12.0pt on input line 120.
+
 
 [4{C:/Users/ereld/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newtx/ntx-ot1-t
-lf.enc}]
+lf.enc}{C:/Users/ereld/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/tex-gyre/q
+-ts1.enc}]
+Overfull \hbox (14.77142pt too wide) in paragraph at lines 127--128
+[]\T1/ntxtlf/b/n/12 Q-Function $\OML/ntxmi/m/it/12 Q[]\LMS/ntxsy/m/n/12 ¹\OML/n
+txmi/m/it/12 s; a\LMS/ntxsy/m/n/12 º$\T1/ntxtlf/b/n/12 : \T1/ntxtlf/m/n/12 Also
+ know as Action-Value Func-tion. Func-tion $[][]$
+ []
 
-[5] (project_book.aux)
+
+
+[5]
+
+[6] (project_book.aux)
  ***********
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2020/03/25>
  ***********
-
-
-Package rerunfilecheck Warning: File `project_book.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `project_book.out':
-(rerunfilecheck)             Before: D41D8CD98F00B204E9800998ECF8427E;0
-(rerunfilecheck)             After:  7ADA060B4CC078179E8BE066F595B0D9;1409.
+Package rerunfilecheck Info: File `project_book.out' has not changed.
+(rerunfilecheck)             Checksum: 531F387963A58FC6D80532349C9B73A4;2108.
  ) 
 Here is how much of TeX's memory you used:
- 14148 strings out of 473899
- 210754 string characters out of 5726501
- 1934960 words of memory out of 5000000
- 36798 multiletter control sequences out of 15000+600000
+ 14171 strings out of 473899
+ 211091 string characters out of 5726501
+ 1935960 words of memory out of 5000000
+ 36813 multiletter control sequences out of 15000+600000
  603031 words of font info for 87 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 80i,6n,93p,563b,538s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 80i,7n,93p,855b,538s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/ereld/AppData/Local/Programs/MiKTeX/fonts/type1/public/newtx/NewTXM
 I.pfb><C:/Users/ereld/AppData/Local/Programs/MiKTeX/fonts/type1/public/tex-gyre
 /qtmr.pfb><C:/Users/ereld/AppData/Local/Programs/MiKTeX/fonts/type1/public/newt
@@ -789,9 +792,9 @@ ic/newtx/txsys.pfb><C:/Users/ereld/AppData/Local/Programs/MiKTeX/fonts/type1/pu
 blic/newtx/ztmb.pfb><C:/Users/ereld/AppData/Local/Programs/MiKTeX/fonts/type1/p
 ublic/newtx/ztmr.pfb><C:/Users/ereld/AppData/Local/Programs/MiKTeX/fonts/type1/
 public/newtx/ztmri.pfb>
-Output written on project_book.pdf (6 pages, 152927 bytes).
+Output written on project_book.pdf (7 pages, 168395 bytes).
 PDF statistics:
- 110 PDF objects out of 1000 (max. 8388607)
- 16 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 169 PDF objects out of 1000 (max. 8388607)
+ 24 named destinations out of 1000 (max. 500000)
+ 97 words of extra memory for PDF output out of 10000 (max. 10000000)
 
