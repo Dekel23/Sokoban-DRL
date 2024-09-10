@@ -9,22 +9,23 @@ from model_factory import *
 from game import SokobanGame
 from hyperopt import hp, fmin, tpe, Trials, space_eval
 
-env = SokobanGame(level=64, graphics_enable=False, random=False)
+# Init environment
+env = SokobanGame(level=61, graphics_enable=True, random=False)
 row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
 # Define space for bayesian hyperparameter optimization
 space = {
     # model parameters
-    'model_name': "NN1",
+    'model_name': "NN2",
 
     # agent parameters
     'epsilon': 1.0,
-    'gamma': 1 - hp.loguniform("gamma", -5, -1), #0.99
-    'epsilon_min': hp.normal("epsilon_min", 0.13, 0.05), # 0.1
+    'gamma': 1 - hp.loguniform("gamma", -3, -1), #0.99
+    'epsilon_min': hp.normal("epsilon_min", 0.13, 0.03), # 0.1
     'epsilon_decay': 1 - hp.loguniform("epsilon_decay", -4, -2), # 0.995
     'beta': hp.normal("beta", 0.9, 0.05), # 0.95
-    'batch_size': hp.choice("batch_size", [12, 16, 20, 24]), # 10
+    'batch_size': hp.choice("batch_size", [20, 24]), # 10
     'prioritized_batch_size': hp.randint("prioritized_batch_size", 5, 15), # 10
 
     # reward parameters
@@ -32,16 +33,16 @@ space = {
     'r_waste': 0, # -2
     'r_move': 0, # -0.5
     'r_done': hp.uniform("r_done", 10, 50), # -20
-    'r_loop': hp.uniform("r_loop", -1, 0), # -0.5
+    'r_loop': hp.uniform("r_loop", -1, 0.1), # -0.5
     'loop_decay': hp.uniform("loop_decay", 0.5, 1), # 0.75
-    'r_hot': hp.uniform("r_hot", 0.5, 5), # 3
-    'r_cold': hp.uniform("r_cold", -5, -0.5), # -2.5
+    'r_hot': hp.uniform("r_hot", 0.5, 4), # 3
+    'r_cold': hp.uniform("r_cold", -4, -0.5), # -2.5
     'loop_size': 5
 }
 
 train_param = {
-    'max_episodes': 1000, # Max episodes per simulation # 800
-    'max_steps': 30, # Max steps per episode # 30
+    'max_episodes': 1200, # Max episodes per simulation # 800
+    'max_steps': 25, # Max steps per episode # 30
     'successes_before_train': 10, # Start learning # 10
     'continuous_successes_goal': 20 # End goal # 20
 }
@@ -341,11 +342,10 @@ def test_optim(file_name):
     # Plot best simulation data
     plot_run(min_steps, min_loops, min_rewards)
 
-# Init environment
-file_name = "NN1_HOTCOLD_loops_64"
-find_optim(space=space, file_name=file_name)
-file_name = "NN1_HOTCOLD_no_loops_64"
-space["r_loop"] = 0
-space["loop_decay"] = 0.75
-find_optim(space=space, file_name=file_name)
+file_name = "NN2_HOTCOLD_loops_64"
+# find_optim(space=space, file_name=file_name)
+# file_name = "NN2_HOTCOLD_no_loops_64"
+# space['r_loop'] = 0
+# space['loop_decay'] = 0.75
+# find_optim(space=space, file_name=file_name)
 test_optim(file_name=file_name)

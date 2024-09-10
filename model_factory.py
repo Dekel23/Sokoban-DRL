@@ -10,6 +10,8 @@ def build_model(name, row, col, input_size, output_size):
         return create_NN1(input_size, output_size)
     elif name == "CNN":
         return create_CNN(row, col, output_size)
+    elif name == "NN2":
+        return create_NN2(input_size, output_size)
     else:
         raise ValueError(f"Unknown model name: {name}")
 
@@ -23,13 +25,24 @@ def create_NN1(input_size, output_size):
     optimizer = optim.RAdam(model.parameters())
     return model, optimizer
 
+def create_NN2(input_size, output_size):
+    model = nn.Sequential(
+        nn.Linear(input_size, 2*input_size),
+        nn.ReLU(),
+        nn.Linear(2*input_size, input_size),
+        nn.ReLU(),
+        nn.Linear(input_size, output_size)
+    )
+    optimizer = optim.RAdam(model.parameters())
+    return model, optimizer
+
 # Create a CNN (small size states)
 def create_CNN(row, col, output_size):
     class CNNModel(nn.Module):
         def __init__(self, in_channels, rows, cols, output_size):
             super(CNNModel, self).__init__()
             self.c1_kernel = 3
-            self.c1_out = 8
+            self.c1_out = 4
             self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=self.c1_out, kernel_size=self.c1_kernel)
             self.pool = nn.MaxPool2d(kernel_size=2)
 

@@ -5,7 +5,7 @@ import numpy as np
 
 
 FIRST_LEVEL = 1
-LAST_LEVEL = 63
+LAST_LEVEL = 64
 
 class SokobanGame:
     def __init__(self, level, graphics_enable=False, random=False, seed=0):
