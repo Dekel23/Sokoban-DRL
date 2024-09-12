@@ -10,7 +10,7 @@ from game import SokobanGame
 from hyperopt import hp, fmin, tpe, Trials, space_eval
 
 # Init environment
-env = SokobanGame(level=61, graphics_enable=True, random=False)
+env = SokobanGame(level=63, graphics_enable=False, random=False)
 row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
@@ -83,103 +83,7 @@ def objective(param):
         tot_episodes += episodes # Calculate total episodes
     return tot_episodes/(siml*train_param['max_episodes']) # Return loos value
 
-def run_ensure_training(agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
-    successful_episodes = 0
-    continuous_successes = 0
-    steps_per_episode = [] # Steps buffer
-    loops_per_episode = [] # Loops buffer
-    accumulated_reward_per_epsiode = [] # Rewards buffer
-    total_episodes = 0
-
-    random_episodes = 0
-    while successful_episodes < successes_before_train:
-        random_episodes += 1
-        print(f"Episode {random_episodes} Epsilon {agent.epsilon:.4f}")
-        env.reset_level() # Reset to start of level
-        reward_gen.reset() # Reset reward counters
-
-        
-        for step in range(1, max_steps + 1):
-            state = env.process_state() # Process current state
-            action = agent.choose_action(state=state) # Agent choose action 
-            done = env.step_action(action=action)  # Preform move
-            next_state = env.process_state() # Process next state
-
-            reward = reward_gen.calculate_reward(state, next_state, done, agent.replay_buffer) # Calculate step reward
-
-            # Store step in replay buffer
-            state = np.reshape(state, (row * col,))
-            next_state = np.reshape(next_state, (row * col,))
-            agent.store_replay(state, action, reward, next_state, done)
-
-            if reward > 0: # If good move store in prioritized replay buffer
-                agent.copy_to_prioritized_replay(1)
-
-            if done:
-                successful_episodes += 1
-                continuous_successes += 1
-                print(f"SOLVED! Episode {random_episodes} Steps: {step} Epsilon {agent.epsilon:.4f}")
-                print(continuous_successes)
-                steps_per_episode.append(step)
-                agent.copy_to_prioritized_replay(step) # Copy last moves to prioritiezed replay
-                break
-        
-        # Update steps, loops and rewards buffers
-        loops_per_episode.append(reward_gen.loop_counter)
-        accumulated_reward_per_epsiode.append(reward_gen.accumulated_reward)
-        if not done:
-            steps_per_episode.append(max_steps)
-    
-    for episode in range(1, max_episodes+1):
-        if continuous_successes >= continuous_successes_goal: # If reached goal
-            print(f"Agent training finished! on episode: {random_episodes + episode-1}")
-            break
-        
-        total_episodes += 1
-        print(f"Episode {random_episodes + episode} Epsilon {agent.epsilon:.4f}")
-        env.reset_level() # Reset to start of level
-        reward_gen.reset() # Reset reward counters
-
-        for step in range(1, max_steps + 1):
-            state = env.process_state() # Process current state
-            action = agent.choose_action(state=state) # Agent choose action 
-            done = env.step_action(action=action)  # Preform move
-            next_state = env.process_state() # Process next state
-
-            reward = reward_gen.calculate_reward(state, next_state, done, agent.replay_buffer) # Calculate step reward
-
-            # Store step in replay buffer
-            state = np.reshape(state, (row * col,))
-            next_state = np.reshape(next_state, (row * col,))
-            agent.store_replay(state, action, reward, next_state, done)
-
-            if reward > 0: # If good move store in prioritized replay buffer
-                agent.copy_to_prioritized_replay(1)
-
-            agent.replay() # Update model parameters
-            agent.update_target_model() # Update target model parameters
-
-            if done:
-                successful_episodes += 1
-                continuous_successes += 1
-                print(f"SOLVED! Episode {random_episodes + episode} Steps: {step} Epsilon {agent.epsilon:.4f}")
-                print(continuous_successes)
-                steps_per_episode.append(step)
-                agent.copy_to_prioritized_replay(step) # Copy last moves to prioritiezed replay
-                break
-        
-        # Update steps, loops and rewards buffers
-        loops_per_episode.append(reward_gen.loop_counter)
-        accumulated_reward_per_epsiode.append(reward_gen.accumulated_reward)
-        if not done:
-            continuous_successes = 0
-            steps_per_episode.append(max_steps)
-    
-    if total_episodes == max_episodes:
-        print(f"Agent training didn't finished!")
-    
-    return total_episodes+random_episodes, steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode
-
+# Simulate the DRL
 def run(agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
     successful_episodes = 0
     continuous_successes = 0
@@ -212,8 +116,8 @@ def run(agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, succes
             next_state = np.reshape(next_state, (row * col,))
             agent.store_replay(state, action, reward, next_state, done)
 
-            if reward > 0: # If good move store in prioritized replay buffer
-                agent.copy_to_prioritized_replay(1)
+            # if reward > 0: # If good move store in prioritized replay buffer
+            #     agent.copy_to_prioritized_replay(1)
 
             if successful_episodes >= successes_before_train: # If start learning
                 agent.replay() # Update model parameters
@@ -240,6 +144,7 @@ def run(agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, succes
     
     return total_episodes, steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode
 
+# Plot simulation results
 def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiode):
     # Plot the step per episode graph
     plt.subplot(311)
@@ -265,6 +170,7 @@ def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiod
     plt.tight_layout()
     plt.show()
 
+# Find optimal hyper-parametes for specific level, model, and reward system 
 def find_optim(space, file_name):
     trails = Trials() # Find best hyperparameters
     best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=60, trials=trails)
@@ -282,6 +188,7 @@ def find_optim(space, file_name):
     print(f"Best hyperparameters saved to best_hyperparameters/{file_name}.json")
     print(bext_space)
 
+# Test optimal hyper-parametes for specific level, model, and reward system 
 def test_optim(file_name):
     # Load best hyperparameters
     with open("best_hyperparameters/" + file_name + ".json", 'r') as f:
@@ -342,9 +249,9 @@ def test_optim(file_name):
     # Plot best simulation data
     plot_run(min_steps, min_loops, min_rewards)
 
-file_name = "NN2_HOTCOLD_loops_64"
+file_name = "NN2_HOTCOLD_loops_63"
 # find_optim(space=space, file_name=file_name)
-# file_name = "NN2_HOTCOLD_no_loops_64"
+# file_name = "NN2_HOTCOLD_no_loops_63"
 # space['r_loop'] = 0
 # space['loop_decay'] = 0.75
 # find_optim(space=space, file_name=file_name)
