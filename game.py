@@ -86,6 +86,7 @@ class SokobanGame:
         # If using graphics then load pygame window from level
         if self.graphics_enable:
             self.game_map.load_level(self.map_info, self.level)
+            self.game_map.update_ui(self.map_info)
 
     # Reset the game to the next level
     def next_level(self):

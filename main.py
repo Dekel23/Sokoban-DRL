@@ -10,7 +10,7 @@ from game import SokobanGame
 from hyperopt import hp, fmin, tpe, Trials, space_eval
 
 # Init environment
-env = SokobanGame(level=63, graphics_enable=False, random=False)
+env = SokobanGame(level=63, graphics_enable=True, random=False)
 row = len(env.map_info) - 2
 col = len(env.map_info[0]) - 2
 
