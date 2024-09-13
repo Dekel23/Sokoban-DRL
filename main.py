@@ -1,5 +1,6 @@
 
 import json
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -8,11 +9,6 @@ from reward_gen import *
 from model_factory import *
 from game import SokobanGame
 from hyperopt import hp, fmin, tpe, Trials, space_eval
-
-# Init environment
-env = SokobanGame(level=63, graphics_enable=True, random=False)
-row = len(env.map_info) - 2
-col = len(env.map_info[0]) - 2
 
 # Define space for bayesian hyperparameter optimization
 space = {
@@ -40,15 +36,8 @@ space = {
     'loop_size': 5
 }
 
-train_param = {
-    'max_episodes': 1200, # Max episodes per simulation # 800
-    'max_steps': 25, # Max steps per episode # 30
-    'successes_before_train': 10, # Start learning # 10
-    'continuous_successes_goal': 20 # End goal # 20
-}
-
 # Objective function to minimize
-def objective(param):
+def objective(param, env, row, col, train_param):
     # Convert hyperparameters
     model_hyperparameters = {
         'name': param['model_name']
@@ -79,12 +68,12 @@ def objective(param):
         model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters) # Create model
         agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters) # Create agent
         reward_gen = build_gen(**reward_hyperparameters) # Create reward system
-        episodes, _, _, _ = run(agent=agent, reward_gen=reward_gen, **train_param)
+        episodes, _, _, _ = run(env=env, row=row, col=col, agent=agent, reward_gen=reward_gen, **train_param)
         tot_episodes += episodes # Calculate total episodes
     return tot_episodes/(siml*train_param['max_episodes']) # Return loos value
 
 # Simulate the DRL
-def run(agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
+def run(env: SokobanGame, row, col ,agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
     successful_episodes = 0
     continuous_successes = 0
     steps_per_episode = [] # Steps buffer
@@ -170,26 +159,22 @@ def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiod
     plt.tight_layout()
     plt.show()
 
-# Find optimal hyper-parametes for specific level, model, and reward system 
-def find_optim(space, file_name):
-    trails = Trials() # Find best hyperparameters
-    best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=60, trials=trails)
-    bext_space = space_eval(space, best)
+# Search optimal hyper-parametes for specific level, model, and reward system 
+def search_optim(file_name, env, col, row, train_param, args):
+    trials = Trials()
+    best = fmin(fn=lambda param: objective(param, env, row, col, train_param), space=space, algo=tpe.suggest, max_evals=args.iter, trials=trials)
+    best_space = space_eval(space, best)
 
     # Convert all numpy.int64 types to int
-    for key, value in bext_space.items():
+    for key, value in best_space.items():
         if isinstance(value, np.int64):
-            bext_space[key] = int(value)
+            best_space[key] = int(value)
 
     # Save best hyperparameters dictionary in json file
     with open("best_hyperparameters/" + file_name + ".json", 'w') as f:
-        json.dump(bext_space, f)
+        json.dump(best_space, f)
 
-    print(f"Best hyperparameters saved to best_hyperparameters/{file_name}.json")
-    print(bext_space)
-
-# Test optimal hyper-parametes for specific level, model, and reward system 
-def test_optim(file_name):
+def test_optim(file_name, env, col, row, train_param, args):
     # Load best hyperparameters
     with open("best_hyperparameters/" + file_name + ".json", 'r') as f:
         best_param = json.load(f)
@@ -218,19 +203,13 @@ def test_optim(file_name):
         'r_hot': best_param['r_hot'],
         'r_cold': best_param['r_cold']
     }
-
-    # Save best simulation buffers
-    min_episodes = train_param['max_episodes']
-    min_steps = []
-    min_loops = []
-    min_rewards = []
-
-    # Simulate 30 times
-    for _ in range(30):
+    
+    # Simulate number of times
+    for _ in range(args.iter):
         model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters) # Create model
         agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters) # Create agent
         reward_gen = build_gen(**reward_hyperparameters) # Create reward system
-        episodes, steps, loops, rewards = run(agent=agent, reward_gen=reward_gen, **train_param)
+        episodes, steps, loops, rewards = run(env=env, row=row, col=col, agent=agent, reward_gen=reward_gen, **train_param)
         if episodes < min_episodes: # Update best simulation
             min_episodes = episodes
             min_steps = steps.copy()
@@ -249,10 +228,47 @@ def test_optim(file_name):
     # Plot best simulation data
     plot_run(min_steps, min_loops, min_rewards)
 
-file_name = "NN2_HOTCOLD_loops_63"
-# find_optim(space=space, file_name=file_name)
-# file_name = "NN2_HOTCOLD_no_loops_63"
-# space['r_loop'] = 0
-# space['loop_decay'] = 0.75
-# find_optim(space=space, file_name=file_name)
-test_optim(file_name=file_name)
+def main(args):
+    # Init environment
+    env = SokobanGame(level=args.level, graphics_enable=args.graphics, random=args.random)
+    row = len(env.map_info) - 2
+    col = len(env.map_info[0]) - 2
+
+    file_name = "Level" + str(args.level) + "/" + args.model + "_" + args.reward_gen + "/no_loops"
+    if args.loops:
+        file_name = "Level" + str(args.level) + "/" + args.model + "_" + args.reward_gen + "/loops"
+
+    train_param = {
+        'max_episodes': args.max_episodes, # Max episodes per simulation
+        'max_steps': args.max_steps, # Max steps per episode
+        'successes_before_train': 10, # Start learning
+        'continuous_successes_goal': 20 # End goal
+    }
+        
+    if "search" in args.mode:
+        search_optim(file_name, env, row, col, train_param, args)
+    
+    if "test" in args.mode:
+        test_optim(file_name, env, row, col, train_param, args)
+
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser(description="Script for formal verification on DRL model of the Japanese game Sokoban")
+    parser.add_argument_group("Basic Options")
+    parser.add_argument('--level', type=int, default=61, help="Set the level to simulate")
+    parser.add_argument('--loops', type=bool, default=True, help="Set to check simulation with loops verification o.w no loops verification")
+    parser.add_argument('--mode', type=str, choices=['search', 'test'], nargs='+', default=['search', 'test'], help="Select the simulation mode to either search for optimal hyperparameters, load existing ones and test their performance, or perform both operations")
+    parser.add_argument('--iter', type=int, default=10, help="Set number of iterations for simulation")
+
+    parser.add_argument_group("Sokoban Options")
+    parser.add_argument('--random', type=bool, default=False, help="Set True for the kepper to start at random position each episode")
+    parser.add_argument('--graphics', type=bool, default=False, help="Set True to see the UI of the Sokoban environment")
+    
+    parser.add_argument_group("Simulation Options")
+    parser.add_argument('--model', type=str, choices=["NN1", "NN2", "CNN"], default="NN2", help="Set the NN model for the simulation")
+    parser.add_argument('--reward_gen', type=str, choices=["Simple", "HotCold"], default="HotCold", help="Set the Reward Generator for the simulation")
+    parser.add_argument('--max_episodes', type=int, default=800, help="Set the number of episodes per simulation")
+    parser.add_argument('--max_steps', type=int, default=30, help="Set the number of steps per episode")
+    
+    args = parser.parse_args()
+    main(args)
