@@ -1,11 +1,11 @@
 from tkinter import Tk
 import pygame
-from map.spritesheet import Spritesheet
+from graphics.spritesheet import Spritesheet
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, name):
         pygame.sprite.Sprite.__init__(self)
-        self.spritesheet = Spritesheet('map/spritesheet.png') # Create spritesheet handler
+        self.spritesheet = Spritesheet('graphics/spritesheet.png') # Create spritesheet handler
         self.image = self.spritesheet.parse_sprite(name) # Get pygame surface
     
     def draw(self, x, y, surface):

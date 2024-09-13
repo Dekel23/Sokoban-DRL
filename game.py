@@ -20,7 +20,7 @@ class SokobanGame:
 
         # If using graphics then create the pygame window
         if self.graphics_enable:
-            from map.graphics import TileMap
+            from graphics.map import TileMap
             self.game_map = TileMap(self.map_info)
 
     # Take the game information and transform it into a states

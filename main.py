@@ -1,4 +1,3 @@
-
 import json
 import argparse
 import numpy as np
@@ -9,68 +8,6 @@ from reward_gen import *
 from model_factory import *
 from game import SokobanGame
 from hyperopt import hp, fmin, tpe, Trials, space_eval
-
-# Define space for bayesian hyperparameter optimization
-space = {
-    # model parameters
-    'model_name': "NN2",
-
-    # agent parameters
-    'epsilon': 1.0,
-    'gamma': 1 - hp.loguniform("gamma", -3, -1), #0.99
-    'epsilon_min': hp.normal("epsilon_min", 0.13, 0.03), # 0.1
-    'epsilon_decay': 1 - hp.loguniform("epsilon_decay", -4, -2), # 0.995
-    'beta': hp.normal("beta", 0.9, 0.05), # 0.95
-    'batch_size': hp.choice("batch_size", [20, 24]), # 10
-    'prioritized_batch_size': hp.randint("prioritized_batch_size", 5, 15), # 10
-
-    # reward parameters
-    'reward_name': "HotCold",
-    'r_waste': 0, # -2
-    'r_move': 0, # -0.5
-    'r_done': hp.uniform("r_done", 10, 50), # -20
-    'r_loop': hp.uniform("r_loop", -1, 0.1), # -0.5
-    'loop_decay': hp.uniform("loop_decay", 0.5, 1), # 0.75
-    'r_hot': hp.uniform("r_hot", 0.5, 4), # 3
-    'r_cold': hp.uniform("r_cold", -4, -0.5), # -2.5
-    'loop_size': 5
-}
-
-# Objective function to minimize
-def objective(param, env, row, col, train_param):
-    # Convert hyperparameters
-    model_hyperparameters = {
-        'name': param['model_name']
-    }
-    agent_hyperparameters = {
-        'gamma': param['gamma'],
-        'epsilon': param['epsilon'],
-        'epsilon_min': param['epsilon_min'],
-        'epsilon_decay': param['epsilon_decay'],
-        'beta': param['beta'],
-        'batch_size': param['batch_size'],
-        'prioritized_batch_size': param['prioritized_batch_size']
-    }
-    reward_hyperparameters = {
-        'name': param['reward_name'],
-        'r_waste': param['r_waste'],
-        'r_done': param['r_done'],
-        'r_move': param['r_move'],
-        'r_loop': param['r_loop'], 
-        'loop_decay': param['loop_decay'], 
-        'loop_size': param['loop_size'],
-        'r_hot': param['r_hot'],
-        'r_cold': param['r_cold']
-    }
-    tot_episodes = 0
-    siml = 4
-    for _ in range(siml): # Simulate 5 times
-        model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters) # Create model
-        agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters) # Create agent
-        reward_gen = build_gen(**reward_hyperparameters) # Create reward system
-        episodes, _, _, _ = run(env=env, row=row, col=col, agent=agent, reward_gen=reward_gen, **train_param)
-        tot_episodes += episodes # Calculate total episodes
-    return tot_episodes/(siml*train_param['max_episodes']) # Return loos value
 
 # Simulate the DRL
 def run(env: SokobanGame, row, col ,agent:Agent, reward_gen:RewardGenerator, max_episodes, max_steps, successes_before_train, continuous_successes_goal):
@@ -159,8 +96,80 @@ def plot_run(steps_per_episode, loops_per_episode, accumulated_reward_per_epsiod
     plt.tight_layout()
     plt.show()
 
+# Objective function to minimize
+def objective(param, env, row, col, train_param):
+    # Convert hyperparameters
+    model_hyperparameters = {
+        'name': param['model_name']
+    }
+    agent_hyperparameters = {
+        'gamma': param['gamma'],
+        'epsilon': param['epsilon'],
+        'epsilon_min': param['epsilon_min'],
+        'epsilon_decay': param['epsilon_decay'],
+        'beta': param['beta'],
+        'batch_size': param['batch_size'],
+        'prioritized_batch_size': param['prioritized_batch_size']
+    }
+    reward_hyperparameters = {
+        'name': param['reward_name'],
+        'r_waste': param['r_waste'],
+        'r_done': param['r_done'],
+        'r_move': param['r_move'],
+        'r_loop': param['r_loop'], 
+        'loop_decay': param['loop_decay'], 
+        'loop_size': param['loop_size'],
+        'r_hot': param['r_hot'],
+        'r_cold': param['r_cold']
+    }
+    tot_episodes = 0
+    siml = 4
+    for _ in range(siml): # Simulate 5 times
+        model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters) # Create model
+        agent = Agent(model=model, optimizer=optimizer, row=row, col=col, **agent_hyperparameters) # Create agent
+        reward_gen = build_gen(**reward_hyperparameters) # Create reward system
+        episodes, _, _, _ = run(env=env, row=row, col=col, agent=agent, reward_gen=reward_gen, **train_param)
+        tot_episodes += episodes # Calculate total episodes
+    return tot_episodes/(siml*train_param['max_episodes']) # Return loos value
+
 # Search optimal hyper-parametes for specific level, model, and reward system 
 def search_optim(file_name, env, col, row, train_param, args):
+    # Define space for bayesian hyperparameter optimization
+    space = {}
+
+    # model parameters
+    space['model_name'] = args.model
+
+    # agent parameters
+    space['epsilon'] = 1.0
+    space['gamma'] =  1 - hp.loguniform("gamma", -3, -1)
+    space['epsilon_min'] = hp.normal("epsilon_min", 0.13, 0.03)
+    space['epsilon_decay'] = 1 - hp.loguniform("epsilon_decay", -4, -2)
+    space['beta'] = hp.normal("beta", 0.9, 0.05)
+    space['batch_size'] = hp.choice("batch_size", [20, 24])
+    space['prioritized_batch_size'] = hp.randint("prioritized_batch_size", 5, 15)
+
+    # reward parameters
+    space['reward_name'] = args.reward_gen
+    space['r_done'] = hp.uniform("r_done", 10, 50)
+    space['loop_size'] = 5
+    if args.reward_gen == "HotCold":
+        space['r_waste'] = 0
+        space['r_move'] = 0
+        space['r_hot'] = hp.uniform("r_hot", 0.5, 4)
+        space['r_cold'] = hp.uniform("r_cold", -4, -0.5)
+    else:
+        space['r_waste'] = hp.uniform("r_waste", -4, -0.5)
+        space['r_move'] = hp.uniform("r_move", -3.5, -0.5)
+        space['r_hot'] = 0
+        space['r_cold'] = 0
+    if args.loops:
+        space['r_loop'] = hp.uniform("r_loop", -1, 0.1)
+        space['loop_decay'] = hp.uniform("loop_decay", 0.5, 1)
+    else:
+        space['r_loop'] = 0
+        space['loop_decay'] = 0
+
     trials = Trials()
     best = fmin(fn=lambda param: objective(param, env, row, col, train_param), space=space, algo=tpe.suggest, max_evals=args.iter, trials=trials)
     best_space = space_eval(space, best)
