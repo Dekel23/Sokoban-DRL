@@ -54,9 +54,9 @@ python main.py --help
   python main.py --model=NN1 --iter=30 --level=62 --mode search test
   ```
 
-- Test the CNN model with graphical output:
+- Test the CNN model with graphical output and loop verification:
   ```bash
-  python main.py --graphics=True --mode test --model=CNN --loops=False --max_step=50
+  python main.py --graphics --mode test --model=CNN --loops --max_step=50
   ```
 
 - Run with custom rewards, levels, and episodes:

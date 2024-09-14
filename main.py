@@ -213,6 +213,7 @@ def test_optim(file_name, env, col, row, train_param, args):
         'r_cold': best_param['r_cold']
     }
     
+    min_episodes=args.max_episodes + 1
     # Simulate number of times
     for _ in range(args.iter):
         model, optimizer = build_model(row=row, col=col, input_size=row*col, output_size=4, **model_hyperparameters) # Create model
@@ -265,13 +266,13 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Script for formal verification on DRL model of the Japanese game Sokoban")
     parser.add_argument_group("Basic Options")
     parser.add_argument('--level', type=int, default=61, help="Set the level to simulate")
-    parser.add_argument('--loops', type=bool, default=True, help="Set to check simulation with loops verification o.w no loops verification")
+    parser.add_argument('--loops', action='store_true', help="Enable loops verification (default: disabled)")
     parser.add_argument('--mode', type=str, choices=['search', 'test'], nargs='+', default=['search', 'test'], help="Select the simulation mode to either search for optimal hyperparameters, load existing ones and test their performance, or perform both operations")
     parser.add_argument('--iter', type=int, default=10, help="Set number of iterations for simulation")
 
     parser.add_argument_group("Sokoban Options")
-    parser.add_argument('--random', type=bool, default=False, help="Set True for the kepper to start at random position each episode")
-    parser.add_argument('--graphics', type=bool, default=False, help="Set True to see the UI of the Sokoban environment")
+    parser.add_argument('--random', action='store_true', help="Enable random start position of the kepper (default:disabled)")
+    parser.add_argument('--graphics', action='store_true', help="Enable graphical output of the game (default:disabled)")
     
     parser.add_argument_group("Simulation Options")
     parser.add_argument('--model', type=str, choices=["NN1", "NN2", "CNN"], default="NN2", help="Set the NN model for the simulation")
@@ -280,4 +281,5 @@ if __name__=="__main__":
     parser.add_argument('--max_steps', type=int, default=30, help="Set the number of steps per episode")
     
     args = parser.parse_args()
+    print(args)
     main(args)
